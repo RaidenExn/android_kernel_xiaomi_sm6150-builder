@@ -79,6 +79,17 @@ add_patches() {
   echo "CONFIG_DEVTMPFS_MOUNT=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
 }
 
+add_dtbo() {
+  echo "Adding dtbo compile support..."
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/e517bc363a19951ead919025a560f843c2c03ad3.patch" -O dtbo1.patch
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/a62a3b05d0f29aab9c4bf8d15fe786a8c8a32c98.patch" -O dtbo2.patch
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/4b89948ec7d610f997dd1dab813897f11f403a06.patch" -O dtbo3.patch
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/fade7df36b01f2b170c78c63eb8fe0d11c613c4a.patch" -O dtbo4.patch
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/2628183db0d96be8dae38a21f2b09cb10978f423.patch" -O dtbo5.patch
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/31f4577af3f8255ae503a5b30d8f68906edde85f.patch" -O dtbo6.patch
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/e100f0be027a96d7c65913863acb7c2188bb1cb3.patch" -O dtbo7.patch
+}
+
 # KSU Setup
 setup_ksu() {
   local arg="$1"
@@ -127,6 +138,7 @@ main() {
   setup_toolchain
   update_path
   add_patches
+  add_dtbo
   setup_ksu "$1"
   compile_kernel
 }
