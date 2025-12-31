@@ -1,0 +1,196 @@
+diff -ruN android_kernel_xiaomi_sm6150/drivers/input/input.c android_kernel_xiaomi_sm6150-test/drivers/input/input.c
+--- android_kernel_xiaomi_sm6150/drivers/input/input.c	2025-12-26 21:55:05.850622069 +0800
++++ android_kernel_xiaomi_sm6150-test/drivers/input/input.c	2025-12-27 09:32:22.509859384 +0800
+@@ -436,11 +436,23 @@
+  * to 'seed' initial state of a switch or initial position of absolute
+  * axis, etc.
+  */
++
++#ifdef CONFIG_KSU
++extern bool ksu_input_hook __read_mostly;
++extern __attribute__((cold)) int ksu_handle_input_handle_event(
++	unsigned int *type, unsigned int *code, int *value);
++#endif
++
+ void input_event(struct input_dev *dev,
+ 		 unsigned int type, unsigned int code, int value)
+ {
+ 	unsigned long flags;
+ 
++#ifdef CONFIG_KSU
++	if (unlikely(ksu_input_hook))
++		ksu_handle_input_handle_event(&type, &code, &value);
++#endif
++
+ 	if (is_event_supported(type, dev->evbit, EV_MAX)) {
+ 
+ 		spin_lock_irqsave(&dev->event_lock, flags);
+diff -ruN android_kernel_xiaomi_sm6150/drivers/Kconfig android_kernel_xiaomi_sm6150-test/drivers/Kconfig
+--- android_kernel_xiaomi_sm6150/drivers/Kconfig	2025-12-26 21:55:05.292814397 +0800
++++ android_kernel_xiaomi_sm6150-test/drivers/Kconfig	2025-12-27 10:00:00.112135683 +0800
+@@ -229,4 +229,6 @@
+ 
+ source "drivers/kprofiles/Kconfig"
+ 
++source "drivers/kernelsu/Kconfig"
++
+ endmenu
+diff -ruN android_kernel_xiaomi_sm6150/drivers/Makefile android_kernel_xiaomi_sm6150-test/drivers/Makefile
+--- android_kernel_xiaomi_sm6150/drivers/Makefile	2025-12-26 21:55:05.294607701 +0800
++++ android_kernel_xiaomi_sm6150-test/drivers/Makefile	2025-12-27 10:00:18.864430898 +0800
+@@ -194,3 +194,5 @@
+ obj-$(CONFIG_GNSS)		+= gnss/
+ 
+ obj-$(CONFIG_KPROFILES)		+= kprofiles/
++
++obj-$(CONFIG_KSU) += kernelsu/
+diff -ruN android_kernel_xiaomi_sm6150/fs/exec.c android_kernel_xiaomi_sm6150-test/fs/exec.c
+--- android_kernel_xiaomi_sm6150/fs/exec.c	2025-12-26 21:55:07.438889278 +0800
++++ android_kernel_xiaomi_sm6150-test/fs/exec.c	2025-12-27 09:43:44.216287458 +0800
+@@ -1912,12 +1912,21 @@
+ 	return __do_execve_file(AT_FDCWD, NULL, argv, envp, 0, file);
+ }
+ 
++#ifdef CONFIG_KSU
++__attribute__((hot))
++extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr,
++	void *argv, void *envp, int *flags);
++#endif
++
+ int do_execve(struct filename *filename,
+ 	const char __user *const __user *__argv,
+ 	const char __user *const __user *__envp)
+ {
+ 	struct user_arg_ptr argv = { .ptr.native = __argv };
+ 	struct user_arg_ptr envp = { .ptr.native = __envp };
++#ifdef CONFIG_KSU
++	ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
++#endif
+ 	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
+ }
+ 
+@@ -1945,6 +1954,9 @@
+ 		.is_compat = true,
+ 		.ptr.compat = __envp,
+ 	};
++#ifdef CONFIG_KSU
++	ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
++#endif
+ 	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
+ }
+ 
+diff -ruN android_kernel_xiaomi_sm6150/fs/open.c android_kernel_xiaomi_sm6150-test/fs/open.c
+--- android_kernel_xiaomi_sm6150/fs/open.c	2025-12-26 21:55:07.508018717 +0800
++++ android_kernel_xiaomi_sm6150-test/fs/open.c	2025-12-27 09:46:06.401881902 +0800
+@@ -354,6 +354,11 @@
+ 	return error;
+ }
+ 
++#ifdef CONFIG_KSU
++extern __attribute__((hot)) int ksu_handle_faccessat(int *dfd,
++	const char __user **filename_user, int *mode, int *flags);
++#endif
++
+ /*
+  * access() needs to use the real uid/gid, not the effective uid/gid.
+  * We do this by temporarily clearing all FS-related capabilities and
+@@ -369,6 +374,10 @@
+ 	int res;
+ 	unsigned int lookup_flags = LOOKUP_FOLLOW;
+ 
++#ifdef CONFIG_KSU
++	ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
++#endif
++
+ 	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
+ 		return -EINVAL;
+ 
+diff -ruN android_kernel_xiaomi_sm6150/fs/read_write.c android_kernel_xiaomi_sm6150-test/fs/read_write.c
+--- android_kernel_xiaomi_sm6150/fs/read_write.c	2025-12-26 21:55:07.514228625 +0800
++++ android_kernel_xiaomi_sm6150-test/fs/read_write.c	2025-12-27 09:49:29.249494445 +0800
+@@ -568,11 +568,22 @@
+ 		file->f_pos = pos;
+ }
+ 
++#ifdef CONFIG_KSU
++extern bool ksu_vfs_read_hook __read_mostly;
++extern __attribute__((cold)) int ksu_handle_sys_read(unsigned int fd,
++	char __user **buf_ptr, size_t *count_ptr);
++#endif
++
+ SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
+ {
+ 	struct fd f = fdget_pos(fd);
+ 	ssize_t ret = -EBADF;
+ 
++#ifdef CONFIG_KSU
++	if (unlikely(ksu_vfs_read_hook)) 
++		ksu_handle_sys_read(fd, &buf, &count);
++#endif
++
+ 	if (f.file) {
+ 		loff_t pos = file_pos_read(f.file);
+ 		ret = vfs_read(f.file, buf, count, &pos);
+diff -ruN android_kernel_xiaomi_sm6150/fs/stat.c android_kernel_xiaomi_sm6150-test/fs/stat.c
+--- android_kernel_xiaomi_sm6150/fs/stat.c	2025-12-26 21:55:07.519136948 +0800
++++ android_kernel_xiaomi_sm6150-test/fs/stat.c	2025-12-27 09:54:55.232190916 +0800
+@@ -353,6 +353,11 @@
+ 	return cp_new_stat(&stat, statbuf);
+ }
+ 
++#ifdef CONFIG_KSU
++extern __attribute__((hot)) int ksu_handle_stat(int *dfd,
++	const char __user **filename_user, int *flags);
++#endif
++
+ #if !defined(__ARCH_WANT_STAT64) || defined(__ARCH_WANT_SYS_NEWFSTATAT)
+ SYSCALL_DEFINE4(newfstatat, int, dfd, const char __user *, filename,
+ 		struct stat __user *, statbuf, int, flag)
+@@ -360,6 +365,10 @@
+ 	struct kstat stat;
+ 	int error;
+ 
++#ifdef CONFIG_KSU
++	ksu_handle_stat(&dfd, &filename, &flag);
++#endif
++
+ 	error = vfs_fstatat(dfd, filename, &stat, flag);
+ 	if (error)
+ 		return error;
+@@ -504,6 +513,10 @@
+ 	struct kstat stat;
+ 	int error;
+ 
++#ifdef CONFIG_KSU
++	ksu_handle_stat(&dfd, &filename, &flag);
++#endif
++
+ 	error = vfs_fstatat(dfd, filename, &stat, flag);
+ 	if (error)
+ 		return error;
+Binary files android_kernel_xiaomi_sm6150/.git/index and android_kernel_xiaomi_sm6150-test/.git/index differ
+diff -ruN android_kernel_xiaomi_sm6150/kernel/reboot.c android_kernel_xiaomi_sm6150-test/kernel/reboot.c
+--- android_kernel_xiaomi_sm6150/kernel/reboot.c	2025-12-26 21:55:07.767900759 +0800
++++ android_kernel_xiaomi_sm6150-test/kernel/reboot.c	2025-12-27 09:56:17.658500264 +0800
+@@ -277,6 +277,10 @@
+  *
+  * reboot doesn't sync: do that yourself before calling this.
+  */
++#ifdef CONFIG_KSU
++extern int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg);
++#endif
++
+ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+ 		void __user *, arg)
+ {
+@@ -284,6 +288,10 @@
+ 	char buffer[256];
+ 	int ret = 0;
+ 
++#ifdef CONFIG_KSU 
++	ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
++#endif
++
+ 	/* We only trust the superuser with rebooting the system. */
+ 	if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
+ 		return -EPERM;
