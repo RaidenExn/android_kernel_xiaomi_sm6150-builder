@@ -32,7 +32,7 @@ jobs:
       - name: Clone kernel repo prepare for compile
         run: |
           git clone https://github.com/LineageOS/android_kernel_xiaomi_sm6150 -b lineage-23.0
-          cp ksu.patch android_kernel_xiaomi_sm6150/
+          cp ksumakefile.patch android_kernel_xiaomi_sm6150/
           cp umount.patch android_kernel_xiaomi_sm6150/
           cp compile.sh android_kernel_xiaomi_sm6150/
       
