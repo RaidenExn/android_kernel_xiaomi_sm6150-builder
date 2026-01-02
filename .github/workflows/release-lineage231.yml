@@ -41,11 +41,11 @@ jobs:
         run: |
           if [[ "${{ matrix.build-type }}" == "ksu" ]]; then
             cd android_kernel_xiaomi_sm6150/
-            ./compile.sh --ksu
+            ./compile.sh --ksu --no-ln8000
             cd ..
           else
             cd android_kernel_xiaomi_sm6150/
-            ./compile.sh
+            ./compile.sh --no-ksu --no-ln8000
             cd ..
           fi
 

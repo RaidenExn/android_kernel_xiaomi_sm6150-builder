@@ -9,8 +9,11 @@
 help_message() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
-  echo "  --ksu     Enable KernelSU support"
-  echo "  --help    Show this help message"
+  echo "  --ksu          Enable KernelSU support"
+  echo "  --no-ksu       Disable KernelSU support"
+  echo "  --ln8000       Enable ln8k charging support"
+  echo "  --no-ln8000    Disable ln8k charging support"
+  echo "  --help         Show this help message"
 }
 
 # Environment setup
@@ -77,21 +80,29 @@ add_patches() {
   echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
   echo "CONFIG_IPC_NS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
   echo "CONFIG_DEVTMPFS_MOUNT=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-  echo "Adding ln8000 patches..."
-  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/05d8eac3722dcf920b716908d910ee704a77950e.patch" -O ln8k1.patch
-  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/eb3509401751b1e90a9b42e2f51326f2ef943af3.patch" -O ln8k2.patch
-  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/785c8f7976798acfc5cf300a320a43b3f39bcb13.patch" -O ln8k3.patch
-  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/e26ba40f3fac0238e410f8a29fa72aac012d75d2.patch" -O ln8k4.patch
-  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/6e50130d7bc99d1cc64196541af7a1780a703253.patch" -O ln8k5.patch
-  patch -p1 < ln8k1.patch
-  patch -p1 < ln8k2.patch
-  patch -p1 < ln8k3.patch
-  patch -p1 < ln8k4.patch
-  patch -p1 < ln8k5.patch
-  echo "CONFIG_CHARGER_LN8000=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
   echo "CONFIG_EROFS_FS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
   echo "CONFIG_F2FS_FS_COMPRESSION=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
   echo "CONFIG_F2FS_FS_LZ4=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+}
+
+add_ln8k() {
+  local arg="$2"
+  if [[ "$arg" == "--ln8000" ]]; then
+    echo "Adding ln8k patches..."
+    wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/05d8eac3722dcf920b716908d910ee704a77950e.patch" -O ln8k1.patch
+    wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/eb3509401751b1e90a9b42e2f51326f2ef943af3.patch" -O ln8k2.patch
+    wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/785c8f7976798acfc5cf300a320a43b3f39bcb13.patch" -O ln8k3.patch
+    wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/e26ba40f3fac0238e410f8a29fa72aac012d75d2.patch" -O ln8k4.patch
+    wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/6e50130d7bc99d1cc64196541af7a1780a703253.patch" -O ln8k5.patch
+    patch -p1 < ln8k1.patch
+    patch -p1 < ln8k2.patch
+    patch -p1 < ln8k3.patch
+    patch -p1 < ln8k4.patch
+    patch -p1 < ln8k5.patch
+    echo "CONFIG_CHARGER_LN8000=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+  elif [[ "$arg" == "--no-ln8000" ]]; then
+    echo "ln8k setup skipped."
+  fi
 }
 
 add_dtbo() {
@@ -126,7 +137,7 @@ setup_ksu() {
     cd drivers
     ln -sfv ../KernelSU/kernel kernelsu
     cd ..
-  else
+  elif [[ "$arg" == "--no-ksu" ]]; then
     echo "KernelSU setup skipped."
   fi
 }
@@ -159,9 +170,10 @@ main() {
   update_path
   add_patches
   add_dtbo
+  add_ln8k "$2"
   setup_ksu "$1"
   compile_kernel
 }
 
 # Run the main function
-main "$1"
+main "$1" "$2"
