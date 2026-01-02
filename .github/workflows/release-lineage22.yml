@@ -67,10 +67,9 @@ jobs:
           cp android_kernel_xiaomi_sm6150/out/arch/arm64/boot/dtbo.img AnyKernel3/
           sed -i 's/supported.versions=11-16/supported.versions=16/' AnyKernel3/anykernel.sh
 
-      - name: Zip AnyKernel3 & shenanigans contents
+      - name: Zip AnyKernel3 contents
         run: |
           ZIPNAME="aosp-perf-neon-${{ matrix.build-type }}-lineage23-${{ steps.ts.outputs.DATE }}-${{ steps.ts.outputs.TIME }}-sweet.zip"
-          SHENANIGANS="shenanigans-${{ matrix.build-type }}.zip"
           cd AnyKernel3
           zip -rq9 "../$ZIPNAME" ./*
           cd ..
