@@ -74,12 +74,6 @@ jobs:
           cd AnyKernel3
           zip -rq9 "../$ZIPNAME" ./*
           cd ..
-          cd android_kernel_xiaomi_sm6150
-          rm -rf clang/
-          rm -rf gcc64/
-          rm -rf gcc32/
-          zip -rq0 "../$SHANANIGANS" ./*
-          cd ..
 
       - name: Upload artifacts (kernel)
         uses: actions/upload-artifact@v6
@@ -87,13 +81,6 @@ jobs:
           name: ${{ matrix.build-type }}-zip
           path: |
             ./AnyKernel3/*.zip
-      
-      - name: Upload artifacts (shenanigans)
-        uses: actions/upload-artifact@v6
-        with:
-          name: shenanigans-${{ matrix.build-type }}-zip
-          path: |
-            ./android_kernel_xiaomi_sm6150/*.zip
 
   release:
     needs: build
