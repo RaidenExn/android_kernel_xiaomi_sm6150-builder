@@ -72,14 +72,13 @@ jobs:
           ZIPNAME="aosp-perf-neon-${{ matrix.build-type }}-lineage23-${{ steps.ts.outputs.DATE }}-${{ steps.ts.outputs.TIME }}-sweet.zip"
           cd AnyKernel3
           zip -rq9 "../$ZIPNAME" ./*
-          cd ..
 
       - name: Upload artifacts (kernel)
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.build-type }}-zip
           path: |
-            ./AnyKernel3/*.zip
+            *.zip
 
   release:
     needs: build
