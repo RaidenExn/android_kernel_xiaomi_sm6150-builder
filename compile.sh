@@ -77,6 +77,18 @@ add_patches() {
   echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
   echo "CONFIG_IPC_NS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
   echo "CONFIG_DEVTMPFS_MOUNT=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+  echo "Adding ln8000 patches..."
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/05d8eac3722dcf920b716908d910ee704a77950e.patch" -O ln8k1.patch
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/eb3509401751b1e90a9b42e2f51326f2ef943af3.patch" -O ln8k2.patch
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/785c8f7976798acfc5cf300a320a43b3f39bcb13.patch" -O ln8k3.patch
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/e26ba40f3fac0238e410f8a29fa72aac012d75d2.patch" -O ln8k4.patch
+  wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/6e50130d7bc99d1cc64196541af7a1780a703253.patch" -O ln8k5.patch
+  patch -p1 < ln8k1.patch
+  patch -p1 < ln8k2.patch
+  patch -p1 < ln8k3.patch
+  patch -p1 < ln8k4.patch
+  patch -p1 < ln8k5.patch
+  echo "CONFIG_CHARGER_LN8000=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
 }
 
 add_dtbo() {
