@@ -75,6 +75,9 @@ jobs:
           zip -rq9 "../$ZIPNAME" ./*
           cd ..
           cd android_kernel_xiaomi_sm6150
+          rm -rf clang/
+          rm -rf gcc64/
+          rm -rf gcc32/
           zip -rq9 "../$SHANANIGANS" ./*
           cd ..
 
