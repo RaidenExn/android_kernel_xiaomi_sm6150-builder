@@ -86,7 +86,7 @@ add_patches() {
 }
 
 add_ln8k() {
-  local arg="$2"
+  local arg="$1"
   if [[ "$arg" == "--ln8000" ]]; then
     echo "Adding ln8k patches..."
     wget -L "https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/05d8eac3722dcf920b716908d910ee704a77950e.patch" -O ln8k1.patch
