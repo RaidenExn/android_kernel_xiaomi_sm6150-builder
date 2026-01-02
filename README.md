@@ -8,7 +8,7 @@ While it's mostly used for another kernel developers to compare their work with 
 This kernel follows weekly builds of [devices/sweet/builds](https://download.lineageos.org/devices/sweet/builds), you will get a new kernel build every sunday. You might need to check out the GitHub repo for new releases.
 
 # Compatibility
-Compatible with official LineageOS builds for Redmi Note 10 Pro, but since this kernel strictly follows [LineageOS/android_kernel_xiaomi_sm6150](https://github.com/LineageOS/android_kernel_xiaomi_sm6150), the compatibility may vary between each releases. Always make sure you have a kernel backup before proceeding. This kernel might gonna work on non-linage based roms but it is not guaranteed.
+Compatible with official LineageOS builds for Redmi Note 10 Pro, but since this kernel strictly follows [LineageOS/android_kernel_xiaomi_sm6150](https://github.com/LineageOS/android_kernel_xiaomi_sm6150), the compatibility may vary between each releases. Always make sure you have a kernel backup before proceeding. This kernel might gonna work on non-lineage based roms but it is not guaranteed.
 
 # Credits
 [TBYOOL](https://github.com/tbyool) for the buildscripts and kernel patches.   
