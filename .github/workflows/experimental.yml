@@ -52,11 +52,7 @@ jobs:
           sed -i 's/CONFIG_SLAB_FREELIST_HARDENED=y/# CONFIG_SLAB_FREELIST_HARDENED is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_REFCOUNT_FULL=y/# CONFIG_REFCOUNT_FULL is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_SUSPEND_SKIP_SYNC=y/# CONFIG_SUSPEND_SKIP_SYNC is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          echo "CONFIG_SECURITY_SELINUX_BOOTPARAM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          echo "CONFIG_SECURITY_SELINUX_BOOTPARAM_VALUE=0" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "CONFIG_SECURITY_SELINUX_DEVELOP=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          echo "CONFIG_TCP_CONG_ADVANCED=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          echo "CONFIG_TCP_CONG_WESTWOOD=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/KBUILD_CFLAGS\s\++= -O2/KBUILD_CFLAGS   += -O3/g' Makefile
           sed -i 's/LDFLAGS\s\++= -O2/LDFLAGS += -O3/g' Makefile
           cd ..
