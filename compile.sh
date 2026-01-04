@@ -159,6 +159,13 @@ compile_kernel() {
     ARCH=arm64 \
     LLVM=1 \
     LLVM_IAS=1 \
+    LD=ld.lld \
+    AR=llvm-ar \
+    NM=llvm-nm \
+    OBJCOPY=llvm-objcopy \
+    OBJDUMP=llvm-objdump \
+    STRIP=llvm-strip \
+    CC=clang \
     CROSS_COMPILE=$GCC64_DIR/bin/aarch64-elf- \
     CROSS_COMPILE_COMPAT=$GCC32_DIR/bin/arm-eabi-
 }
