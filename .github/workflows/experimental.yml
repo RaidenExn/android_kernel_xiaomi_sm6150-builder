@@ -46,18 +46,19 @@ jobs:
           sed -i 's/CONFIG_PSTORE_RAM=y/# CONFIG_PSTORE_RAM is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_ZRAM_WRITEBACK=y/# CONFIG_ZRAM_WRITEBACK is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_CC_STACKPROTECTOR_STRONG=y/CONFIG_CC_STACKPROTECTOR_REGULAR=y/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          sed -i 's/CONFIG_HZ_300=y/CONFIG_HZ_500=y/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_HZ_300=y/CONFIG_HZ_650=y/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_HARDENED_USERCOPY=y/# CONFIG_HARDENED_USERCOPY is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_SLAB_FREELIST_RANDOM=y/# CONFIG_SLAB_FREELIST_RANDOM is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_SLAB_FREELIST_HARDENED=y/# CONFIG_SLAB_FREELIST_HARDENED is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_REFCOUNT_FULL=y/# CONFIG_REFCOUNT_FULL is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_SUSPEND_SKIP_SYNC=y/# CONFIG_SUSPEND_SKIP_SYNC is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "CONFIG_SECURITY_SELINUX_BOOTPARAM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          echo "CONFIG_SECURITY_SELINUX_BOOTPARAM_VALUE=1" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          echo "CONFIG_SECURITY_SELINUX_BOOTPARAM_VALUE=0" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "CONFIG_SECURITY_SELINUX_DEVELOP=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "CONFIG_TCP_CONG_ADVANCED=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "CONFIG_TCP_CONG_WESTWOOD=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          echo "CONFIG_DEFAULT_TCP_CONG=\"westwood\"" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/KBUILD_CFLAGS\s\++= -O2/KBUILD_CFLAGS   += -O3/g' Makefile
+          sed -i 's/LDFLAGS\s\++= -O2/LDFLAGS += -O3/g' Makefile
           cd ..
 
       - name: Compile kernel (${{ matrix.build-type }})
