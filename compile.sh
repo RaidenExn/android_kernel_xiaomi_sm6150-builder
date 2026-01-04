@@ -155,7 +155,7 @@ compile_kernel() {
   ulimit -s unlimited
   sed -i '1i DISABLE_LTO := y' drivers/staging/qcacld-3.0/Kbuild
   sed -i '2i DISABLE_LTO_CLANG := y' drivers/staging/qcacld-3.0/Kbuild
-  sed -i '2i ccflags-y := $(filter-out $(LTO_CFLAGS) $(DISABLE_LTO_CLANG), $(ccflags-y))' drivers/staging/qcacld-3.0/Kbuild
+  sed -i '3i ccflags-y := $(filter-out $(LTO_CFLAGS) $(DISABLE_LTO_CLANG), $(ccflags-y))' drivers/staging/qcacld-3.0/Kbuild
   make O=out ARCH=arm64 vendor/sdmsteppe-perf_defconfig
   make O=out ARCH=arm64 vendor/sweet.config
   make -j$(nproc --all) \
