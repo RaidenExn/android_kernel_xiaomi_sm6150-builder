@@ -51,8 +51,6 @@ jobs:
           sed -i 's/CONFIG_SLAB_FREELIST_RANDOM=y/# CONFIG_SLAB_FREELIST_RANDOM is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_SLAB_FREELIST_HARDENED=y/# CONFIG_SLAB_FREELIST_HARDENED is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_REFCOUNT_FULL=y/# CONFIG_REFCOUNT_FULL is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          echo "CONFIG_THINLTO=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           cd ..
 
       - name: Compile kernel (${{ matrix.build-type }})
