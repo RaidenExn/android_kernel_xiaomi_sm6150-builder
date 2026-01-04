@@ -38,8 +38,19 @@ jobs:
       - name: Patch kernel outside of compile script
         run: |
           cd android_kernel_xiaomi_sm6150/
-          wget -L "https://github.com/firelzrd/bore-scheduler/raw/refs/heads/main/patches/legacy/linux-4.4-bore/0001-linux4.4.y-bore3.1.8.patch" -O bore.patch
-          patch -p1 < bore.patch
+          sed -i 's/CONFIG_IPC_LOGGING=y/# CONFIG_IPC_LOGGING is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_DEBUG_INFO=y/# CONFIG_DEBUG_INFO is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_PSTORE=y/# CONFIG_PSTORE is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_PSTORE_CONSOLE=y/# CONFIG_PSTORE_CONSOLE is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_PSTORE_PMSG=y/# CONFIG_PSTORE_PMSG is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_PSTORE_RAM=y/# CONFIG_PSTORE_RAM is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_ZRAM_WRITEBACK=y/# CONFIG_ZRAM_WRITEBACK is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_SECCOMP=y/# CONFIG_SECCOMP is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_CC_STACKPROTECTOR_STRONG=y/CONFIG_CC_STACKPROTECTOR_REGULAR=y/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_HARDENED_USERCOPY=y/# CONFIG_HARDENED_USERCOPY is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_SLAB_FREELIST_HARDENED=y/# CONFIG_SLAB_FREELIST_HARDENED is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/KBUILD_CFLAGS\s\++= -O2/KBUILD_CFLAGS   += -O3/g' Makefile
+          sed -i 's/LDFLAGS\s\++= -O2/LDFLAGS += -O3/g' Makefile
           cd ..
 
       - name: Compile kernel (${{ matrix.build-type }})
