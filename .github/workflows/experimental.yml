@@ -46,13 +46,21 @@ jobs:
           sed -i 's/CONFIG_PSTORE_RAM=y/# CONFIG_PSTORE_RAM is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_ZRAM_WRITEBACK=y/# CONFIG_ZRAM_WRITEBACK is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_CC_STACKPROTECTOR_STRONG=y/CONFIG_CC_STACKPROTECTOR_REGULAR=y/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          sed -i 's/CONFIG_HZ_300=y/CONFIG_HZ_650=y/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_HARDENED_USERCOPY=y/# CONFIG_HARDENED_USERCOPY is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_SLAB_FREELIST_RANDOM=y/# CONFIG_SLAB_FREELIST_RANDOM is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_SLAB_FREELIST_HARDENED=y/# CONFIG_SLAB_FREELIST_HARDENED is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_REFCOUNT_FULL=y/# CONFIG_REFCOUNT_FULL is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/CONFIG_SUSPEND_SKIP_SYNC=y/# CONFIG_SUSPEND_SKIP_SYNC is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          sed -i 's/CONFIG_KALLSYMS_ALL=y/# CONFIG_KALLSYMS_ALL is not set/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          echo "# CONFIG_KALLSYMS is not set" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          echo "# CONFIG_KALLSYMS_BASE_RELATIVE is not set" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          echo "# CONFIG_RANDOMIZE_MODULE_REGION_FULL is not set" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "CONFIG_SECURITY_SELINUX_DEVELOP=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          echo "CONFIG_FSCACHE=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          echo "CONFIG_FSCACHE_STATS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          echo "CONFIG_FSCACHE_HISTOGRAM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          echo "CONFIG_EXT4_ENCRYPTION=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+          echo "CONFIG_IOSCHED_BFQ=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           sed -i 's/KBUILD_CFLAGS\s\++= -O2/KBUILD_CFLAGS   += -O3/g' Makefile
           sed -i 's/LDFLAGS\s\++= -O2/LDFLAGS += -O3/g' Makefile
           cd ..
