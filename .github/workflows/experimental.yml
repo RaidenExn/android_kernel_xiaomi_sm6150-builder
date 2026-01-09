@@ -55,14 +55,11 @@ jobs:
           echo "# CONFIG_KALLSYMS is not set" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "# CONFIG_KALLSYMS_BASE_RELATIVE is not set" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "# CONFIG_RANDOMIZE_MODULE_REGION_FULL is not set" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          echo "CONFIG_SECURITY_SELINUX_DEVELOP=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "CONFIG_FSCACHE=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "CONFIG_FSCACHE_STATS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "CONFIG_FSCACHE_HISTOGRAM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "CONFIG_EXT4_ENCRYPTION=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
           echo "CONFIG_IOSCHED_BFQ=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-          sed -i 's/KBUILD_CFLAGS\s\++= -O2/KBUILD_CFLAGS   += -O3/g' Makefile
-          sed -i 's/LDFLAGS\s\++= -O2/LDFLAGS += -O3/g' Makefile
           cd ..
 
       - name: Compile kernel (${{ matrix.build-type }})
