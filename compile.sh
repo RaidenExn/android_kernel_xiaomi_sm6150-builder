@@ -136,7 +136,7 @@ setup_ksu() {
     echo "CONFIG_KSU=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     echo "CONFIG_KSU_LSM_SECURITY_HOOKS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     echo "CONFIG_KSU_MANUAL_HOOKS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    wget -L "https://github.com/ximi-mojito-test/mojito_krenol/commit/36105f0599f679bc76e2866de397d50a83339849.patch" -O ksu.patch
+    wget -L "https://github.com/ximi-mojito-test/mojito_krenol/commit/8e25004fdc74d9bf6d902d02e402620c17c692df.patch" -O ksu.patch
     patch -p1 < ksu.patch
     patch -p1 < ksumakefile.patch
     patch -p1 < umount.patch
@@ -153,7 +153,6 @@ setup_ksu() {
 compile_kernel() {
   echo -e "\nStarting compilation..."
   sed -i 's/CONFIG_LOCALVERSION="-perf"/CONFIG_LOCALVERSION="-perf-neon"/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-  ulimit -s unlimited
   git config user.email "riarucompile@riaru.com"
   git config user.name "riaru-compile"
   git config set advice.addEmbeddedRepo true
