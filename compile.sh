@@ -110,6 +110,10 @@ add_ln8k() {
     sed -i 's/ - 700000//g' drivers/power/supply/ti/ln8000_charger.c
     sed -i 's/ln8000_charger,bus-ocp-threshold = <3750>;/ln8000_charger,bus-ocp-threshold = <5000>;/g' arch/arm64/boot/dts/qcom/xiaomi/sweet/sweet-sdmmagpie.dtsi
     sed -i 's/#define BATT_FAST_CHG_CURR\t\t6000/#define BATT_FAST_CHG_CURR\t\t7000/' drivers/power/supply/ti/pd_policy_manager.c
+    sed -i 's/#define BUS_OCP_FOR_QC_CLASS_A\t\t3250000/#define BUS_OCP_FOR_QC_CLASS_A\t\t5000000/' drivers/power/supply/ti/ln8000_charger.h
+    sed -i 's/#define BUS_OCP_FOR_QC_CLASS_B\t\t3750000/#define BUS_OCP_FOR_QC_CLASS_B\t\t5000000/' drivers/power/supply/ti/ln8000_charger.h
+    sed -i 's/info->iin_uA < 70000/info->iin_uA < 10000/' drivers/power/supply/ti/ln8000_charger.c
+    sed -i 's/#define\tBUS_OVP_THRESHOLD\t\t12000/#define\tBUS_OVP_THRESHOLD\t\t14000/' drivers/power/supply/ti/pd_policy_manager.c
     elif [[ "$arg" == "--no-ln8000" ]]; then
     echo "ln8k setup skipped."
   fi
