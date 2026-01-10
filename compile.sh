@@ -90,10 +90,6 @@ add_patches() {
   echo "CONFIG_SECURITY_SELINUX_DEVELOP=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
   sed -i 's/KBUILD_CFLAGS\s\++= -O2/KBUILD_CFLAGS   += -O3/g' Makefile
   sed -i 's/LDFLAGS\s\++= -O2/LDFLAGS += -O3/g' Makefile
-  wget -L "https://github.com/tbyool/android_kernel_xiaomi_sm6150/commit/b0b7a49731d099cf2862d9289f49a781127e7775.patch" -O qcacld.patch
-  patch -p1 < qcacld.patch
-  echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-  echo "CONFIG_THINLTO=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
 }
 
 add_ln8k() {
