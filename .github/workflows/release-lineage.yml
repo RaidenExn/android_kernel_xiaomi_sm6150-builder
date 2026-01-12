@@ -198,7 +198,7 @@ jobs:
           echo "✅ All build artifacts verified"
 
       - name: Cache AnyKernel3
-        uses: actions/cache@v5.0.14
+        uses: actions/cache@v5.0.1
         with:
           path: AnyKernel3
           key: anykernel3-${{ hashFiles('**/anykernel.sh') }}
@@ -264,7 +264,7 @@ jobs:
 
     steps:
       - name: Download all build artifacts
-        uses: actions/download-artifact@v4.5.0
+        uses: actions/download-artifact@v4
         with:
           path: ./artifacts
 
@@ -299,4 +299,3 @@ jobs:
             artifacts/lineage-23.0-zip/*.zip
             artifacts/lineage-23.0-zip/*.sha256
             artifacts/lineage-23.0-zip/*.md5
-          overwrite_files: true
