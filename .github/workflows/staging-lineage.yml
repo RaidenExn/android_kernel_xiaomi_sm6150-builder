@@ -99,6 +99,41 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.1
 
+      - name: Free up disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          
+          # Remove Android SDK (saves ~8-10GB)
+          sudo rm -rf /usr/local/lib/android
+          
+          # Remove .NET (saves ~2GB)
+          sudo rm -rf /usr/share/dotnet
+          
+          # Remove Swift (saves ~1.5GB)
+          sudo rm -rf /usr/share/swift
+          
+          # Remove Haskell (saves ~1GB)
+          sudo rm -rf /opt/ghc
+          
+          # Remove CodeQL (saves ~5GB)
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          
+          # Remove large packages
+          sudo apt-get remove -y '^dotnet-.*' '^llvm-.*' 'php.*' '^mongodb-.*' '^mysql-.*'
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+          
+          # Remove Docker images (saves ~4GB)
+          docker rmi $(docker images -q) 2>/dev/null || true
+          
+          echo ""
+          echo "Disk space after cleanup:"
+          df -h
+          echo ""
+          echo "Available space in /home/runner/work:"
+          du -sh /home/runner/work
+
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.14
         with:
