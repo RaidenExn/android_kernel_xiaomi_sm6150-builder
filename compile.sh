@@ -185,7 +185,20 @@ setup_ksu() {
 
 # Compile kernel
 compile_kernel() {
-  echo -e "\nStarting compilation..."
+  echo -e "\n===========================================" 
+  echo "Starting kernel compilation..."
+  echo "===========================================\n"
+  
+  # Enable ccache if available
+  if command -v ccache &> /dev/null; then
+    export USE_CCACHE=1
+    export CCACHE_DIR=$PWD/../.ccache
+    echo "✅ ccache enabled (cache dir: $CCACHE_DIR)"
+    ccache --zero-stats
+  else
+    echo "ℹ️ ccache not available, proceeding without cache"
+  fi
+  
   sed -i 's/CONFIG_LOCALVERSION="-perf"/CONFIG_LOCALVERSION="-perf-neon"/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
   git config user.email "riarucompile@riaru.com"
   git config user.name "riaru-compile"
@@ -194,7 +207,19 @@ compile_kernel() {
   git commit -m "cleanup: applied patches before build"
   make O=out ARCH=arm64 vendor/sdmsteppe-perf_defconfig
   make O=out ARCH=arm64 vendor/sweet.config
-  make -j$(nproc --all) \
+  
+  # Calculate optimal job count (cores * 1.5 for I/O overlap)
+  JOBS=$(($(nproc --all) * 3 / 2))
+  echo "Building with $JOBS parallel jobs..."
+  
+  # Use ccache with clang if available
+  if command -v ccache &> /dev/null; then
+    CCACHE_CLANG="ccache clang"
+  else
+    CCACHE_CLANG="clang"
+  fi
+  
+  make -j$JOBS \
     O=out \
     ARCH=arm64 \
     LLVM=1 \
@@ -205,9 +230,21 @@ compile_kernel() {
     OBJCOPY=llvm-objcopy \
     OBJDUMP=llvm-objdump \
     STRIP=llvm-strip \
-    CC=clang \
+    CC="$CCACHE_CLANG" \
     CROSS_COMPILE=$GCC64_DIR/bin/aarch64-elf- \
-    CROSS_COMPILE_COMPAT=$GCC32_DIR/bin/arm-eabi- 
+    CROSS_COMPILE_COMPAT=$GCC32_DIR/bin/arm-eabi-
+  
+  # Show ccache statistics
+  if command -v ccache &> /dev/null; then
+    echo "\n===========================================" 
+    echo "📊 ccache Statistics:"
+    echo "===========================================" 
+    ccache --show-stats
+  fi
+  
+  echo "\n===========================================" 
+  echo "✅ Kernel compilation completed!"
+  echo "===========================================\n"
 }
 
 # Main function
