@@ -235,6 +235,8 @@ jobs:
           
           # Set KProfiles flag (only for manual builds)
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] && [[ "${{ inputs.enable-kprofiles }}" == "true" ]]; then
+          # Set KProfiles flag
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] && [[ "${{ inputs.enable-kprofiles }}" == "true" ]] || [[ "${{ github.event_name }}" == "schedule" ]]; then
             KP_FLAG="--kprofiles"
           else
             KP_FLAG="--no-kprofiles"
@@ -245,7 +247,7 @@ jobs:
           echo "NetHunter: $NH_FLAG"
           echo "KProfiles: $KP_FLAG"
           
-          ./compile.sh --ksu --ln8000 "$F2FS_FLAG" "$NH_FLAG" "$KP_FLAG"
+          ./compile.sh --ksu --ln8000 "$F2FS_FLAG" "$NH_FLAG" "$KP_FLAG" "$KP_FLAG"
           cd ..
 
       - name: Verify build artifacts

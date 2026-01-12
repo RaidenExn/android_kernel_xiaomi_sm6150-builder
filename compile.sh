@@ -187,6 +187,36 @@ setup_ksu() {
   fi
 }
 
+# KProfiles Support
+add_kprofiles() {
+  local arg="$1"
+  if [[ "$arg" == "--kprofiles" ]]; then
+    echo "Adding KProfiles support..."
+    
+    # Clone KProfiles kernel module
+    if [ ! -d "drivers/misc/kprofiles" ]; then
+      git clone https://github.com/dakkshesh07/Kprofiles.git drivers/misc/kprofiles --depth=1
+    fi
+    
+    # Modify drivers/misc/Kconfig
+    if ! grep -q "source \"drivers/misc/kprofiles/Kconfig\"" drivers/misc/Kconfig; then
+      sed -i '/^endmenu/i source "drivers/misc/kprofiles/Kconfig"' drivers/misc/Kconfig
+    fi
+    
+    # Modify drivers/misc/Makefile  
+    if ! grep -q "obj-.*CONFIG_KPROFILES" drivers/misc/Makefile; then
+      echo "obj-\$(CONFIG_KPROFILES) += kprofiles/" >> drivers/misc/Makefile
+    fi
+    
+    # Enable KProfiles in kernel config
+    echo "CONFIG_KPROFILES=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    
+    echo "✅ KProfiles support added successfully"
+  elif [[ "$arg" == "--no-kprofiles" ]]; then
+    echo "KProfiles support skipped."
+  fi
+}
+
 # Compile kernel
 compile_kernel() {
   echo -e "\nStarting compilation..."
