@@ -289,9 +289,10 @@ jobs:
               ;;
           esac
           
+          # Check which features were built (from kernel .config)
           cd android_kernel_xiaomi_sm6150/
           
-          # Check which features were built
+          echo ""
           echo "=========================================="
           echo "📦 Build Feature Summary"
           echo "=========================================="
@@ -324,6 +325,9 @@ jobs:
           
           echo "=========================================="
           echo ""
+          
+          # Return to parent directory
+          cd ..
           
           # Set ZIP name with features
           ZIPNAME="aosp-perf-neon-${{ matrix.build-type }}${FEATURE_SUFFIX}-${{ needs.prepare-matrix.outputs.date }}-${{ needs.prepare-matrix.outputs.timestamp }}-sweet.zip"

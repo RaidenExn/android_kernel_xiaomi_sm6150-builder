@@ -297,12 +297,19 @@ jobs:
               sed -i 's/supported.versions=11-16/supported.versions=16/' AnyKernel3/anykernel.sh
               ;;
           esac
+          
+          echo "=========================================="
+          echo ""
+          
+          # Return to parent directory
+          cd ..
+          
+          # Set ZIP name with features
+          ZIPNAME="aosp-perf-neon-${{ matrix.build-type }}${NH_SUFFIX}-${{ needs.prepare-matrix.outputs.date }}-${{ needs.prepare-matrix.outputs.timestamp }}-sweet.zip"
+          echo "📦 Output: $ZIPNAME"
 
       - name: Zip kernel contents
         run: |
-          fi
-          
-          ZIPNAME="aosp-perf-neon-${{ matrix.build-type }}${NH_SUFFIX}-${{ needs.prepare-matrix.outputs.date }}-${{ needs.prepare-matrix.outputs.timestamp }}-sweet.zip"
           cd AnyKernel3
           zip -rq9 "../$ZIPNAME" ./*
           cd ..
