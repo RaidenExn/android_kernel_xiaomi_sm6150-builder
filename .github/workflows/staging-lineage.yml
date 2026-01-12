@@ -2,30 +2,114 @@ name: Staging builds
 
 on:
   workflow_dispatch:
+    inputs:
+      build-lineage-20:
+        description: 'Build LineageOS 20'
+        required: false
+        type: boolean
+        default: false
+      build-lineage-21:
+        description: 'Build LineageOS 21'
+        required: false
+        type: boolean
+        default: false
+      build-lineage-22-2:
+        description: 'Build LineageOS 22.2'
+        required: false
+        type: boolean
+        default: false
+      build-lineage-23-0:
+        description: 'Build LineageOS 23.0'
+        required: false
+        type: boolean
+        default: true
+      enable-nethunter-full:
+        description: 'Enable full NetHunter patches (HID, USB serial, extra drivers)'
+        required: false
+        type: boolean
+        default: false
+      enable-kprofiles:
+        description: 'Enable KProfiles support (CPU/GPU profile management)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  prepare-matrix:
     runs-on: ubuntu-latest
     outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
       timestamp: ${{ steps.ts.outputs.TIME }}
       date: ${{ steps.ts.outputs.DATE }}
-    strategy:
-      matrix:
-        build-type: [lineage-20, lineage-21, lineage-22.2, lineage-23.0]
-
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Timestamp
+      - name: Generate timestamp
         id: ts
         run: |
           DATE=$(date +'%Y%m%d')
           TIME=$(date +'%s')
           echo "DATE=$DATE" >> $GITHUB_OUTPUT
           echo "TIME=$TIME" >> $GITHUB_OUTPUT
+
+      - name: Determine build matrix
+        id: set-matrix
+        run: |
+          BUILDS=()
+          if [[ "${{ inputs.build-lineage-20 }}" == "true" ]]; then
+            BUILDS+=("lineage-20")
+          fi
+          if [[ "${{ inputs.build-lineage-21 }}" == "true" ]]; then
+            BUILDS+=("lineage-21")
+          fi
+          if [[ "${{ inputs.build-lineage-22-2 }}" == "true" ]]; then
+            BUILDS+=("lineage-22.2")
+          fi
+          if [[ "${{ inputs.build-lineage-23-0 }}" == "true" ]]; then
+            BUILDS+=("lineage-23.0")
+          fi
+          
+          # If no builds selected, default to lineage-23.0
+          if [ ${#BUILDS[@]} -eq 0 ]; then
+            BUILDS=("lineage-23.0")
+            echo "⚠️ No versions selected, defaulting to lineage-23.0"
+          fi
+          
+          echo "Selected builds: ${BUILDS[@]}"
+          
+          # Convert to JSON array properly
+          JSON_ARRAY="["
+          for i in "${!BUILDS[@]}"; do
+            if [ $i -gt 0 ]; then
+              JSON_ARRAY+=","
+            fi
+            JSON_ARRAY+="\"${BUILDS[$i]}\""
+          done
+          JSON_ARRAY+="]"
+          
+          echo "matrix={\"build-type\":$JSON_ARRAY}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Cache toolchains
+        uses: actions/cache@v4
+        with:
+          path: |
+            clang
+            gcc64
+            gcc32
+          key: toolchains-${{ runner.os }}-clang-r547379-gcc-latest
+          restore-keys: |
+            toolchains-${{ runner.os }}-clang-r547379-
+            toolchains-${{ runner.os }}-
 
       - name: Install build dependencies
         run: |
@@ -35,127 +119,120 @@ jobs:
             libc6 curl libstdc++6 git wget libssl-dev zstd \
             lld python3
 
-      - name: Prepare for compile (${{ matrix.build-type }}, KSU)
+      - name: Prepare for compile (${{ matrix.build-type }})
         run: |
-          if [ -d "$PWD/android_kernel_xiaomi_sm6150" ]; then
-            rm -rf android_kernel_xiaomi_sm6150
-          fi
-          if [[ "${{ matrix.build-type }}" == "lineage-20" ]]; then
-            git clone https://github.com/LineageOS/android_kernel_xiaomi_sm6150 --depth=1 -b lineage-20
-          elif [[ "${{ matrix.build-type }}" == "lineage-21" ]]; then
-            git clone https://github.com/LineageOS/android_kernel_xiaomi_sm6150 --depth=1 -b lineage-21
-          elif [[ "${{ matrix.build-type }}" == "lineage-22.2" ]]; then
-            git clone https://github.com/LineageOS/android_kernel_xiaomi_sm6150 --depth=1 -b lineage-22.2
-          elif [[ "${{ matrix.build-type }}" == "lineage-23.0" ]]; then
-            git clone https://github.com/LineageOS/android_kernel_xiaomi_sm6150 --depth=1 -b lineage-23.0
-          fi
+          BRANCH="${{ matrix.build-type }}"
+          git clone https://github.com/LineageOS/android_kernel_xiaomi_sm6150 \
+            --depth=1 -b "$BRANCH" android_kernel_xiaomi_sm6150
+          
           cp ksumakefile.patch android_kernel_xiaomi_sm6150/
           cp compile.sh android_kernel_xiaomi_sm6150/
           chmod +x ./android_kernel_xiaomi_sm6150/compile.sh
 
-      - name: Compile the kernel (KSU)
+      - name: Compile the kernel
         run: |
           cd android_kernel_xiaomi_sm6150/
-          echo "Starting to compile..."
-          if [[ "${{ matrix.build-type }}" == "lineage-20" ]]; then
-            ./compile.sh --ksu --ln8000 --no-f2fs
-          elif [[ "${{ matrix.build-type }}" == "lineage-21" ]]; then
-            ./compile.sh --ksu --ln8000 --no-f2fs
-          elif [[ "${{ matrix.build-type }}" == "lineage-22.2" ]]; then
-            ./compile.sh --ksu --ln8000 --f2fs
-          elif [[ "${{ matrix.build-type }}" == "lineage-23.0" ]]; then
-            ./compile.sh --ksu --ln8000 --f2fs
+          
+          # Set F2FS flag based on version
+          if [[ "${{ matrix.build-type }}" =~ ^lineage-(22\.2|23\.0)$ ]]; then
+            F2FS_FLAG="--f2fs"
+          else
+            F2FS_FLAG="--no-f2fs"
           fi
+          
+          # Set NetHunter flag
+          if [[ "${{ inputs.enable-nethunter-full }}" == "true" ]]; then
+            NH_FLAG="--nethunter-full"
+          else
+            NH_FLAG="--no-nethunter-full"
+          fi
+          
+          # Set KProfiles flag
+          if [[ "${{ inputs.enable-kprofiles }}" == "true" ]]; then
+            KP_FLAG="--kprofiles"
+          else
+            KP_FLAG="--no-kprofiles"
+          fi
+          
+          echo "Starting to compile..."
+          echo "F2FS: $F2FS_FLAG"
+          echo "NetHunter: $NH_FLAG"
+          echo "KProfiles: $KP_FLAG"
+          
+          ./compile.sh --ksu --ln8000 "$F2FS_FLAG" "$NH_FLAG" "$KP_FLAG"
           cd ..
 
-      - name: Preparing AnyKernel3 (KSU)
+      - name: Verify build artifacts
         run: |
-          if [ -d "$PWD/AnyKernel3" ]; then
-            rm -rf AnyKernel3
+          if [ ! -f android_kernel_xiaomi_sm6150/out/arch/arm64/boot/Image.gz ]; then
+            echo "❌ Kernel Image.gz not found!"
+            exit 1
           fi
-          git clone https://github.com/riarumoda/AnyKernel3 AnyKernel3 --depth=1
+          if [ ! -f android_kernel_xiaomi_sm6150/out/arch/arm64/boot/dtb.img ]; then
+            echo "❌ DTB image not found!"
+            exit 1
+          fi
+          if [ ! -f android_kernel_xiaomi_sm6150/out/arch/arm64/boot/dtbo.img ]; then
+            echo "❌ DTBO image not found!"
+            exit 1
+          fi
+          echo "✅ All build artifacts verified"
+
+      - name: Cache AnyKernel3
+        uses: actions/cache@v4
+        with:
+          path: AnyKernel3
+          key: anykernel3-${{ hashFiles('**/anykernel.sh') }}
+          restore-keys: anykernel3-
+
+      - name: Preparing AnyKernel3
+        run: |
+          if [ ! -d "AnyKernel3/.git" ]; then
+            rm -rf AnyKernel3
+            git clone https://github.com/riarumoda/AnyKernel3 AnyKernel3 --depth=1
+          fi
+          
           cp android_kernel_xiaomi_sm6150/out/arch/arm64/boot/Image.gz AnyKernel3/
           cp android_kernel_xiaomi_sm6150/out/arch/arm64/boot/dtb.img AnyKernel3/
           cp android_kernel_xiaomi_sm6150/out/arch/arm64/boot/dtbo.img AnyKernel3/
-          if [[ "${{ matrix.build-type }}" == "lineage-20" ]]; then
-            sed -i 's/supported.versions=11-16/supported.versions=11-13/' AnyKernel3/anykernel.sh
-          elif [[ "${{ matrix.build-type }}" == "lineage-21" ]]; then
-            sed -i 's/supported.versions=11-16/supported.versions=11-14/' AnyKernel3/anykernel.sh
-          elif [[ "${{ matrix.build-type }}" == "lineage-22.2" ]]; then
-            sed -i 's/supported.versions=11-16/supported.versions=11-15/' AnyKernel3/anykernel.sh
-          elif [[ "${{ matrix.build-type }}" == "lineage-23.0" ]]; then
-            sed -i 's/supported.versions=11-16/supported.versions=16/' AnyKernel3/anykernel.sh
-          fi
+          
+          # Set supported Android versions based on LineageOS version
+          case "${{ matrix.build-type }}" in
+            lineage-20)
+              sed -i 's/supported.versions=11-16/supported.versions=11-13/' AnyKernel3/anykernel.sh
+              ;;
+            lineage-21)
+              sed -i 's/supported.versions=11-16/supported.versions=11-14/' AnyKernel3/anykernel.sh
+              ;;
+            lineage-22.2)
+              sed -i 's/supported.versions=11-16/supported.versions=11-15/' AnyKernel3/anykernel.sh
+              ;;
+            lineage-23.0)
+              sed -i 's/supported.versions=11-16/supported.versions=16/' AnyKernel3/anykernel.sh
+              ;;
+          esac
 
-      - name: Zip kernel contents (KSU)
+      - name: Zip kernel contents
         run: |
-          ZIPNAME="aosp-perf-neon-ksu-${{ matrix.build-type }}-${{ steps.ts.outputs.DATE }}-${{ steps.ts.outputs.TIME }}-sweet.zip"
+          NH_SUFFIX=""
+          if [[ "${{ inputs.enable-nethunter-full }}" == "true" ]]; then
+            NH_SUFFIX="-nethunter"
+          fi
+          
+          ZIPNAME="aosp-perf-neon-${{ matrix.build-type }}${NH_SUFFIX}-${{ needs.prepare-matrix.outputs.date }}-${{ needs.prepare-matrix.outputs.timestamp }}-sweet.zip"
           cd AnyKernel3
           zip -rq9 "../$ZIPNAME" ./*
           cd ..
+          
+          # Generate checksums
+          sha256sum "$ZIPNAME" > "${ZIPNAME}.sha256"
+          md5sum "$ZIPNAME" > "${ZIPNAME}.md5"
 
-      - name: Prepare for compile (${{ matrix.build-type }}, No KSU)
-        run: |
-          if [ -d "$PWD/android_kernel_xiaomi_sm6150" ]; then
-            rm -rf android_kernel_xiaomi_sm6150
-          fi
-          if [[ "${{ matrix.build-type }}" == "lineage-20" ]]; then
-            git clone https://github.com/LineageOS/android_kernel_xiaomi_sm6150 --depth=1 -b lineage-20
-          elif [[ "${{ matrix.build-type }}" == "lineage-21" ]]; then
-            git clone https://github.com/LineageOS/android_kernel_xiaomi_sm6150 --depth=1 -b lineage-21
-          elif [[ "${{ matrix.build-type }}" == "lineage-22.2" ]]; then
-            git clone https://github.com/LineageOS/android_kernel_xiaomi_sm6150 --depth=1 -b lineage-22.2
-          elif [[ "${{ matrix.build-type }}" == "lineage-23.0" ]]; then
-            git clone https://github.com/LineageOS/android_kernel_xiaomi_sm6150 --depth=1 -b lineage-23.0
-          fi
-          cp ksumakefile.patch android_kernel_xiaomi_sm6150/
-          cp compile.sh android_kernel_xiaomi_sm6150/
-          chmod +x ./android_kernel_xiaomi_sm6150/compile.sh
-
-      - name: Compile the kernel (No KSU)
-        run: |
-          cd android_kernel_xiaomi_sm6150/
-          echo "Starting to compile..."
-          if [[ "${{ matrix.build-type }}" == "lineage-20" ]]; then
-            ./compile.sh --no-ksu --ln8000 --no-f2fs
-          elif [[ "${{ matrix.build-type }}" == "lineage-21" ]]; then
-            ./compile.sh --no-ksu --ln8000 --no-f2fs
-          elif [[ "${{ matrix.build-type }}" == "lineage-22.2" ]]; then
-            ./compile.sh --no-ksu --ln8000 --f2fs
-          elif [[ "${{ matrix.build-type }}" == "lineage-23.0" ]]; then
-            ./compile.sh --no-ksu --ln8000 --f2fs
-          fi
-          cd ..
-
-      - name: Preparing AnyKernel3 (No KSU)
-        run: |
-          if [ -d "$PWD/AnyKernel3" ]; then
-            rm -rf AnyKernel3
-          fi
-          git clone https://github.com/riarumoda/AnyKernel3 AnyKernel3 --depth=1
-          cp android_kernel_xiaomi_sm6150/out/arch/arm64/boot/Image.gz AnyKernel3/
-          cp android_kernel_xiaomi_sm6150/out/arch/arm64/boot/dtb.img AnyKernel3/
-          cp android_kernel_xiaomi_sm6150/out/arch/arm64/boot/dtbo.img AnyKernel3/
-          if [[ "${{ matrix.build-type }}" == "lineage-20" ]]; then
-            sed -i 's/supported.versions=11-16/supported.versions=11-13/' AnyKernel3/anykernel.sh
-          elif [[ "${{ matrix.build-type }}" == "lineage-21" ]]; then
-            sed -i 's/supported.versions=11-16/supported.versions=11-14/' AnyKernel3/anykernel.sh
-          elif [[ "${{ matrix.build-type }}" == "lineage-22.2" ]]; then
-            sed -i 's/supported.versions=11-16/supported.versions=11-15/' AnyKernel3/anykernel.sh
-          elif [[ "${{ matrix.build-type }}" == "lineage-23.0" ]]; then
-            sed -i 's/supported.versions=11-16/supported.versions=16/' AnyKernel3/anykernel.sh
-          fi
-
-      - name: Zip kernel contents (No KSU)
-        run: |
-          ZIPNAME="aosp-perf-neon-no-ksu-${{ matrix.build-type }}-${{ steps.ts.outputs.DATE }}-${{ steps.ts.outputs.TIME }}-sweet.zip"
-          cd AnyKernel3
-          zip -rq9 "../$ZIPNAME" ./*
-          cd ..
-
-      - name: Upload artifacts (All builds)
+      - name: Upload artifacts
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.build-type }}-zip
           path: |
             *.zip
+            *.sha256
+            *.md5

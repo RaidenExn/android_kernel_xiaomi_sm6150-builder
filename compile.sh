@@ -9,13 +9,17 @@
 help_message() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
-  echo "  --ksu          Enable KernelSU support"
-  echo "  --no-ksu       Disable KernelSU support"
-  echo "  --ln8000       Enable ln8k charging support"
-  echo "  --no-ln8000    Disable ln8k charging support"
-  echo "  --f2fs         Enable F2FS compression support"
-  echo "  --no-f2fs      Disable F2FS compression support"
-  echo "  --help         Show this help message"
+  echo "  --ksu                Enable KernelSU support"
+  echo "  --no-ksu             Disable KernelSU support"
+  echo "  --ln8000             Enable ln8k charging support"
+  echo "  --no-ln8000          Disable ln8k charging support"
+  echo "  --f2fs               Enable F2FS compression support"
+  echo "  --no-f2fs            Disable F2FS compression support"
+  echo "  --nethunter-full     Enable full Kali NetHunter patches (HID, USB serial, extra drivers)"
+  echo "  --no-nethunter-full  Disable NetHunter patches"
+  echo "  --kprofiles          Enable KProfiles support (CPU/GPU profile management)"
+  echo "  --no-kprofiles       Disable KProfiles support"
+  echo "  --help               Show this help message"
 }
 
 # Environment setup
@@ -163,16 +167,9 @@ setup_ksu() {
     echo "CONFIG_KSU=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     echo "CONFIG_KSU_LSM_SECURITY_HOOKS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     echo "CONFIG_KSU_MANUAL_HOOKS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_KSU_SUSFS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_KSU_SUSFS_SUS_PATH=n" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=n" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     wget -L "https://github.com/ximi-mojito-test/mojito_krenol/commit/8e25004fdc74d9bf6d902d02e402620c17c692df.patch" -O ksu.patch
     patch -p1 < ksu.patch
     patch -p1 < ksumakefile.patch
-    wget -L "https://github.com/TheSillyOk/kernel_ls_patches/raw/refs/heads/master/kpatch_fix.patch" -O kpatch_fix.patch
-    patch -p1 < kpatch_fix.patch
-    wget -L "https://github.com/TheSillyOk/kernel_ls_patches/raw/refs/heads/master/susfs-2.0.0.patch" -O susfs.patch
-    patch -p1 < susfs.patch
     git clone "$KSU_SETUP_URI" -b "$KSU_BRANCH" KernelSU
     cd drivers
     ln -sfv ../KernelSU/kernel kernelsu
@@ -229,8 +226,10 @@ main() {
   add_f2fs "$3"
   add_ln8k "$2"
   setup_ksu "$1"
+  add_kprofiles "$5"        # Add KProfiles as 5th argument
+  add_nethunter_full "$4"  # Add NetHunter as 4th argument
   compile_kernel
 }
 
 # Run the main function
-main "$1" "$2" "$3"
+main "$1" "$2" "$3" "$4" "$5"
