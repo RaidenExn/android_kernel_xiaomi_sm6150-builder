@@ -248,23 +248,46 @@ jobs:
               ;;
             lineage-21)
               sed -i 's/supported.versions=11-16/supported.versions=11-14/' AnyKernel3/anykernel.sh
-              ;;
-            lineage-22.2)
-              sed -i 's/supported.versions=11-16/supported.versions=11-15/' AnyKernel3/anykernel.sh
-              ;;
-            lineage-23.0)
-              sed -i 's/supported.versions=11-16/supported.versions=16/' AnyKernel3/anykernel.sh
-              ;;
-          esac
-
-      - name: Zip kernel contents
-        run: |
-          NH_SUFFIX=""
-          if [[ "${{ inputs.enable-nethunter-full }}" == "true" ]]; then
-            NH_SUFFIX="-nethunter"
+          # Check which features were built
+          echo ""
+          echo "=========================================="
+          echo "📦 Build Feature Summary"
+          echo "=========================================="
+          
+          FEATURE_SUFFIX=""
+          
+          # Check for KernelSU
+          if grep -q "CONFIG_KSU=y" out/.config; then
+            echo "✅ KernelSU: ENABLED"
+            FEATURE_SUFFIX="${FEATURE_SUFFIX}-KSU"
+          else
+            echo "❌ KernelSU: Disabled"
           fi
           
-          ZIPNAME="aosp-perf-neon-${{ matrix.build-type }}${NH_SUFFIX}-${{ needs.prepare-matrix.outputs.date }}-${{ needs.prepare-matrix.outputs.timestamp }}-sweet.zip"
+          # Check for NetHunter
+          if grep -q "CONFIG_USB_CONFIGFS_F_HID=y" out/.config; then
+            echo "✅ NetHunter: ENABLED (HID + USB Serial)"
+            FEATURE_SUFFIX="${FEATURE_SUFFIX}-NH"
+          else
+            echo "❌ NetHunter: Disabled"
+          fi
+          
+          # Check for KProfiles  
+          if grep -q "CONFIG_KPROFILES=y" out/.config; then
+            echo "✅ KProfiles: ENABLED (CPU/GPU Management)"
+            FEATURE_SUFFIX="${FEATURE_SUFFIX}-KP"
+          else
+            echo "❌ KProfiles: Disabled"
+          fi
+          
+          echo "=========================================="
+          echo ""
+          
+          # Set ZIP name with features
+          ZIPNAME="aosp-perf-neon-${{ matrix.build-type }}${FEATURE_SUFFIX}-${{ needs.prepare-matrix.outputs.date }}-${{ needs.prepare-matrix.outputs.timestamp }}-sweet.zip"
+          echo "📦 Output: $ZIPNAME"
+          echo ""
+          
           cd AnyKernel3
           zip -rq9 "../$ZIPNAME" ./*
           cd ..
