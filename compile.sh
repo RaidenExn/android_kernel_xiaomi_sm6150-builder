@@ -167,9 +167,16 @@ setup_ksu() {
     echo "CONFIG_KSU=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     echo "CONFIG_KSU_LSM_SECURITY_HOOKS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     echo "CONFIG_KSU_MANUAL_HOOKS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_KSU_SUSFS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_KSU_SUSFS_SUS_PATH=n" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=n" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     wget -L "https://github.com/ximi-mojito-test/mojito_krenol/commit/8e25004fdc74d9bf6d902d02e402620c17c692df.patch" -O ksu.patch
     patch -p1 < ksu.patch
     patch -p1 < ksumakefile.patch
+    wget -L "https://github.com/TheSillyOk/kernel_ls_patches/raw/refs/heads/master/kpatch_fix.patch" -O kpatch_fix.patch
+    patch -p1 < kpatch_fix.patch
+    wget -L "https://github.com/TheSillyOk/kernel_ls_patches/raw/refs/heads/master/susfs-2.0.0.patch" -O susfs.patch
+    patch -p1 < susfs.patch
     git clone "$KSU_SETUP_URI" -b "$KSU_BRANCH" KernelSU
     cd drivers
     ln -sfv ../KernelSU/kernel kernelsu
@@ -183,11 +190,94 @@ setup_ksu() {
   fi
 }
 
+# KProfiles Support
+add_kprofiles() {
+  local arg="$1"
+  if [[ "$arg" == "--kprofiles" ]]; then
+    echo "Adding KProfiles support..."
+    
+    # Clone KProfiles kernel module
+    if [ ! -d "drivers/misc/kprofiles" ]; then
+      echo "Cloning KProfiles kernel module..."
+      git clone https://github.com/beakthoven/Kprofiles.git drivers/misc/kprofiles --depth=1
+    else
+      echo "KProfiles directory already exists, skipping clone"
+    fi
+    
+    # Modify drivers/misc/Kconfig
+    echo "Modifying drivers/misc/Kconfig..."
+    if ! grep -q "source \"drivers/misc/kprofiles/Kconfig\"" drivers/misc/Kconfig; then
+      sed -i '/^endmenu/i source "drivers/misc/kprofiles/Kconfig"' drivers/misc/Kconfig
+    fi
+    
+    # Modify drivers/misc/Makefile
+    echo "Modifying drivers/misc/Makefile..."
+    if ! grep -q "obj-.CONFIG_KPROFILES" drivers/misc/Makefile; then
+      echo "obj-\$(CONFIG_KPROFILES) += kprofiles/"  >> drivers/misc/Makefile
+    fi
+    
+    # Enable KProfiles in kernel config
+    echo "CONFIG_KPROFILES=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    
+    echo "✅ KProfiles support added successfully"
+  elif [[ "$arg" == "--no-kprofiles" ]]; then
+    echo "KProfiles support skipped."
+  fi
+}
+
+# NetHunter Full Support
+add_nethunter_full() {
+  local arg="$1"
+  if [[ "$arg" == "--nethunter-full" ]]; then
+    echo "Adding full Kali NetHunter compatibility patches..."
+    
+    # HID Keyboard/Mouse gadget support
+    echo "CONFIG_USB_CONFIGFS_F_HID=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_USB_GADGET=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_USB_CONFIGFS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_USB_LIBCOMPOSITE=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    
+    # USB Serial/RNDIS support
+    echo "CONFIG_USB_CONFIGFS_SERIAL=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_USB_CONFIGFS_RNDIS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_USB_CONFIGFS_ECM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_USB_CONFIGFS_NCM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_USB_CONFIGFS_EEM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    
+    # USB ACM and Serial support
+    echo "CONFIG_USB_ACM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_USB_SERIAL=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_USB_SERIAL_GENERIC=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_USB_SERIAL_OPTION=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_USB_WDM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    
+    # Filesystem support
+    echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_SQUASHFS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_SQUASHFS_XZ=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    
+    # Bluetooth support
+    echo "CONFIG_BT_HCIBTUSB=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_BT_RFCOMM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    
+    # Network filtering
+    echo "CONFIG_NETFILTER_XT_TARGET_TCPMSS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_IP_NF_TARGET_MASQUERADE=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_IP6_NF_TARGET_MASQUERADE=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    
+    echo "✅ NetHunter full patches applied successfully"
+  elif [[ "$arg" == "--no-nethunter-full" ]]; then
+    echo "NetHunter full patches skipped."
+  fi
+}
+
 # Compile kernel
 compile_kernel() {
-  echo -e "\n===========================================" 
+  echo -e "
+===========================================" 
   echo "Starting kernel compilation..."
-  echo "===========================================\n"
+  echo "===========================================
+"
   
   # Enable ccache if available
   if command -v ccache &> /dev/null; then
@@ -236,15 +326,18 @@ compile_kernel() {
   
   # Show ccache statistics
   if command -v ccache &> /dev/null; then
-    echo "\n===========================================" 
+    echo "
+===========================================" 
     echo "📊 ccache Statistics:"
     echo "===========================================" 
     ccache --show-stats
   fi
   
-  echo "\n===========================================" 
+  echo "
+===========================================" 
   echo "✅ Kernel compilation completed!"
-  echo "===========================================\n"
+  echo "===========================================
+"
 }
 
 # Main function
