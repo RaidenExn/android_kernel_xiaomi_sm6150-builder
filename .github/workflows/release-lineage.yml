@@ -189,7 +189,7 @@ jobs:
           body: |
             Notes:
               > Kernel has been built with ln8k charger imported.   
-              > KPatch fixup patches is not applied on no-ksu builds. ⚠️   
+              > KPatch fixup and susfs patches is not applied on no-ksu builds. ⚠️   
               > F2FS Compression patch is not applied on lineage-20 and lineage-21 builds. ⚠️   
               > KernelSU latest manager can be found in [here](https://t.me/ksunext_ci) or in [here](https://github.com/KernelSU-Next/KernelSU-Next/actions/workflows/build-manager-ci.yml).   
           files: |
