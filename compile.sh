@@ -163,11 +163,17 @@ setup_ksu() {
     echo "CONFIG_KSU=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     echo "CONFIG_KSU_LSM_SECURITY_HOOKS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     echo "CONFIG_KSU_MANUAL_HOOKS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "CONFIG_KSU_SUSFS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    echo "KSU_SUSFS_SUS_PATH=n" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     wget -L "https://github.com/ximi-mojito-test/mojito_krenol/commit/8e25004fdc74d9bf6d902d02e402620c17c692df.patch" -O ksu.patch
     patch -p1 < ksu.patch
     patch -p1 < ksumakefile.patch
     wget -L "https://github.com/TheSillyOk/kernel_ls_patches/raw/refs/heads/master/kpatch_fix.patch" -O kpatch_fix.patch
     patch -p1 < kpatch_fix.patch
+    wget -L "https://github.com/TheSillyOk/kernel_ls_patches/raw/refs/heads/master/susfs-2.0.0.patch" -O susfs.patch
+    patch -p1 < susfs.patch
+    wget -L "https://raw.githubusercontent.com/TheSillyOk/kernel_ls_patches/refs/heads/master/KSUN/KSUN-SUSFS-2.0.0.patch" -O ksun_susfs.patch
+    patch -p1 < ksun_susfs.patch
     git clone "$KSU_SETUP_URI" -b "$KSU_BRANCH" KernelSU
     cd drivers
     ln -sfv ../KernelSU/kernel kernelsu
