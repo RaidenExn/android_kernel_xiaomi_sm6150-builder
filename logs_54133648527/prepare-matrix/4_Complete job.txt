@@ -1,0 +1,5 @@
+﻿2026-01-12T11:34:32.1551713Z Evaluate and set job outputs
+2026-01-12T11:34:32.1562851Z Set output 'matrix'
+2026-01-12T11:34:32.1565359Z Set output 'timestamp'
+2026-01-12T11:34:32.1566187Z Set output 'date'
+2026-01-12T11:34:32.1567292Z Cleaning up orphan processes

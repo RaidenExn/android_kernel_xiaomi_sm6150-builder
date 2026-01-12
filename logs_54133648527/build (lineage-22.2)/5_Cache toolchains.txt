@@ -1,0 +1,17 @@
+﻿2026-01-12T11:36:06.0125741Z ##[group]Run actions/cache@v5.0.1
+2026-01-12T11:36:06.0126159Z with:
+2026-01-12T11:36:06.0126389Z   path: clang
+gcc64
+gcc32
+
+2026-01-12T11:36:06.0126661Z   key: toolchains-Linux-clang-r584948-gcc-latest
+2026-01-12T11:36:06.0127272Z   restore-keys: toolchains-Linux-clang-r584948-
+toolchains-Linux-clang-r547379-
+toolchains-Linux-
+
+2026-01-12T11:36:06.0127841Z   enableCrossOsArchive: false
+2026-01-12T11:36:06.0128080Z   fail-on-cache-miss: false
+2026-01-12T11:36:06.0128290Z   lookup-only: false
+2026-01-12T11:36:06.0128539Z   save-always: false
+2026-01-12T11:36:06.0128770Z ##[endgroup]
+2026-01-12T11:36:06.2603110Z Cache not found for input keys: toolchains-Linux-clang-r584948-gcc-latest, toolchains-Linux-clang-r584948-, toolchains-Linux-clang-r547379-, toolchains-Linux-

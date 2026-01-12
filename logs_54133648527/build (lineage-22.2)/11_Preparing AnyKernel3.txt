@@ -1,0 +1,68 @@
+﻿2026-01-12T11:51:57.5664132Z ##[group]Run if [ ! -d "AnyKernel3/.git" ]; then
+2026-01-12T11:51:57.5664548Z [36;1mif [ ! -d "AnyKernel3/.git" ]; then[0m
+2026-01-12T11:51:57.5664830Z [36;1m  rm -rf AnyKernel3[0m
+2026-01-12T11:51:57.5665200Z [36;1m  git clone https://github.com/riarumoda/AnyKernel3 AnyKernel3 --depth=1[0m
+2026-01-12T11:51:57.5665587Z [36;1mfi[0m
+2026-01-12T11:51:57.5665757Z [36;1m[0m
+2026-01-12T11:51:57.5666060Z [36;1mcp android_kernel_xiaomi_sm6150/out/arch/arm64/boot/Image.gz AnyKernel3/[0m
+2026-01-12T11:51:57.5666549Z [36;1mcp android_kernel_xiaomi_sm6150/out/arch/arm64/boot/dtb.img AnyKernel3/[0m
+2026-01-12T11:51:57.5667022Z [36;1mcp android_kernel_xiaomi_sm6150/out/arch/arm64/boot/dtbo.img AnyKernel3/[0m
+2026-01-12T11:51:57.5667375Z [36;1m[0m
+2026-01-12T11:51:57.5667760Z [36;1m# Set supported Android versions based on LineageOS version[0m
+2026-01-12T11:51:57.5668104Z [36;1mcase "lineage-22.2" in[0m
+2026-01-12T11:51:57.5668340Z [36;1m  lineage-20)[0m
+2026-01-12T11:51:57.5668735Z [36;1m    sed -i 's/supported.versions=11-16/supported.versions=11-13/' AnyKernel3/anykernel.sh[0m
+2026-01-12T11:51:57.5669190Z [36;1m    ;;[0m
+2026-01-12T11:51:57.5669376Z [36;1m  lineage-21)[0m
+2026-01-12T11:51:57.5669753Z [36;1m    sed -i 's/supported.versions=11-16/supported.versions=11-14/' AnyKernel3/anykernel.sh[0m
+2026-01-12T11:51:57.5670193Z [36;1m# Check which features were built[0m
+2026-01-12T11:51:57.5670442Z [36;1mecho ""[0m
+2026-01-12T11:51:57.5670669Z [36;1mecho "=========================================="[0m
+2026-01-12T11:51:57.5670969Z [36;1mecho "📦 Build Feature Summary"[0m
+2026-01-12T11:51:57.5671251Z [36;1mecho "=========================================="[0m
+2026-01-12T11:51:57.5671512Z [36;1m[0m
+2026-01-12T11:51:57.5671690Z [36;1mFEATURE_SUFFIX=""[0m
+2026-01-12T11:51:57.5671894Z [36;1m[0m
+2026-01-12T11:51:57.5672069Z [36;1m# Check for KernelSU[0m
+2026-01-12T11:51:57.5672609Z [36;1mif grep -q "CONFIG_KSU=y" out/.config; then[0m
+2026-01-12T11:51:57.5672932Z [36;1m  echo "✅ KernelSU: ENABLED"[0m
+2026-01-12T11:51:57.5673224Z [36;1m  FEATURE_SUFFIX="${FEATURE_SUFFIX}-KSU"[0m
+2026-01-12T11:51:57.5673496Z [36;1melse[0m
+2026-01-12T11:51:57.5673691Z [36;1m  echo "❌ KernelSU: Disabled"[0m
+2026-01-12T11:51:57.5673923Z [36;1mfi[0m
+2026-01-12T11:51:57.5674090Z [36;1m[0m
+2026-01-12T11:51:57.5674266Z [36;1m# Check for NetHunter[0m
+2026-01-12T11:51:57.5674571Z [36;1mif grep -q "CONFIG_USB_CONFIGFS_F_HID=y" out/.config; then[0m
+2026-01-12T11:51:57.5674948Z [36;1m  echo "✅ NetHunter: ENABLED (HID + USB Serial)"[0m
+2026-01-12T11:51:57.5675296Z [36;1m  FEATURE_SUFFIX="${FEATURE_SUFFIX}-NH"[0m
+2026-01-12T11:51:57.5675563Z [36;1melse[0m
+2026-01-12T11:51:57.5675759Z [36;1m  echo "❌ NetHunter: Disabled"[0m
+2026-01-12T11:51:57.5676002Z [36;1mfi[0m
+2026-01-12T11:51:57.5676172Z [36;1m[0m
+2026-01-12T11:51:57.5676346Z [36;1m# Check for KProfiles  [0m
+2026-01-12T11:51:57.5676651Z [36;1mif grep -q "CONFIG_KPROFILES=y" out/.config; then[0m
+2026-01-12T11:51:57.5677020Z [36;1m  echo "✅ KProfiles: ENABLED (CPU/GPU Management)"[0m
+2026-01-12T11:51:57.5677362Z [36;1m  FEATURE_SUFFIX="${FEATURE_SUFFIX}-KP"[0m
+2026-01-12T11:51:57.5677627Z [36;1melse[0m
+2026-01-12T11:51:57.5677818Z [36;1m  echo "❌ KProfiles: Disabled"[0m
+2026-01-12T11:51:57.5678056Z [36;1mfi[0m
+2026-01-12T11:51:57.5678212Z [36;1m[0m
+2026-01-12T11:51:57.5678415Z [36;1mecho "=========================================="[0m
+2026-01-12T11:51:57.5678689Z [36;1mecho ""[0m
+2026-01-12T11:51:57.5678870Z [36;1m[0m
+2026-01-12T11:51:57.5679052Z [36;1m# Set ZIP name with features[0m
+2026-01-12T11:51:57.5679496Z [36;1mZIPNAME="aosp-perf-neon-lineage-22.2${FEATURE_SUFFIX}-20260112-1768217672-sweet.zip"[0m
+2026-01-12T11:51:57.5679939Z [36;1mecho "📦 Output: $ZIPNAME"[0m
+2026-01-12T11:51:57.5680487Z [36;1mecho ""[0m
+2026-01-12T11:51:57.5680668Z [36;1m[0m
+2026-01-12T11:51:57.5680833Z [36;1mcd AnyKernel3[0m
+2026-01-12T11:51:57.5681187Z [36;1mzip -rq9 "../$ZIPNAME" ./*[0m
+2026-01-12T11:51:57.5681421Z [36;1mcd ..[0m
+2026-01-12T11:51:57.5681748Z [36;1m[0m
+2026-01-12T11:51:57.5681916Z [36;1m# Generate checksums[0m
+2026-01-12T11:51:57.5682183Z [36;1msha256sum "$ZIPNAME" > "${ZIPNAME}.sha256"[0m
+2026-01-12T11:51:57.5683035Z [36;1mmd5sum "$ZIPNAME" > "${ZIPNAME}.md5"[0m
+2026-01-12T11:51:57.5710243Z shell: /usr/bin/bash -e {0}
+2026-01-12T11:51:57.5710499Z ##[endgroup]
+2026-01-12T11:51:57.6042626Z /home/runner/work/_temp/726b573f-e2c9-4598-a5fb-07eaab3d8bb3.sh: line 64: syntax error: unexpected end of file
+2026-01-12T11:51:57.6050233Z ##[error]Process completed with exit code 2.

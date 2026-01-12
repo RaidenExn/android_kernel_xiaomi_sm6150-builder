@@ -1,0 +1,17 @@
+﻿2026-01-12T11:51:48.2787995Z ##[group]Run if [ ! -f android_kernel_xiaomi_sm6150/out/arch/arm64/boot/Image.gz ]; then
+2026-01-12T11:51:48.2788592Z [36;1mif [ ! -f android_kernel_xiaomi_sm6150/out/arch/arm64/boot/Image.gz ]; then[0m
+2026-01-12T11:51:48.2789002Z [36;1m  echo "❌ Kernel Image.gz not found!"[0m
+2026-01-12T11:51:48.2789263Z [36;1m  exit 1[0m
+2026-01-12T11:51:48.2789434Z [36;1mfi[0m
+2026-01-12T11:51:48.2789722Z [36;1mif [ ! -f android_kernel_xiaomi_sm6150/out/arch/arm64/boot/dtb.img ]; then[0m
+2026-01-12T11:51:48.2790093Z [36;1m  echo "❌ DTB image not found!"[0m
+2026-01-12T11:51:48.2790331Z [36;1m  exit 1[0m
+2026-01-12T11:51:48.2790495Z [36;1mfi[0m
+2026-01-12T11:51:48.2790775Z [36;1mif [ ! -f android_kernel_xiaomi_sm6150/out/arch/arm64/boot/dtbo.img ]; then[0m
+2026-01-12T11:51:48.2791159Z [36;1m  echo "❌ DTBO image not found!"[0m
+2026-01-12T11:51:48.2791392Z [36;1m  exit 1[0m
+2026-01-12T11:51:48.2791560Z [36;1mfi[0m
+2026-01-12T11:51:48.2791747Z [36;1mecho "✅ All build artifacts verified"[0m
+2026-01-12T11:51:48.3147759Z shell: /usr/bin/bash -e {0}
+2026-01-12T11:51:48.3148122Z ##[endgroup]
+2026-01-12T11:51:48.3197682Z ✅ All build artifacts verified

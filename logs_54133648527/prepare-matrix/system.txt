@@ -1,0 +1,8 @@
+2026-01-12T11:34:26.2890000Z Job is about to start running on the hosted runner: GitHub Actions 1000000556
+2026-01-12T11:34:26.2620000Z Requested labels: ubuntu-latest
+2026-01-12T11:34:26.2620000Z Job defined at: RaidenExn/android_kernel_xiaomi_sm6150-builder/.github/workflows/staging-lineage.yml@refs/heads/dev
+2026-01-12T11:34:26.2620000Z Waiting for a runner to pick up this job...
+2026-01-12T11:34:26.2880000Z Job is waiting for a hosted runner to come online.
+2026-01-12T11:34:26.2600000Z Evaluating prepare-matrix.if
+2026-01-12T11:34:26.2600000Z Evaluating: success()
+2026-01-12T11:34:26.2600000Z Result: true

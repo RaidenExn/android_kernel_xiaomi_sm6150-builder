@@ -248,8 +248,18 @@ jobs:
               ;;
             lineage-21)
               sed -i 's/supported.versions=11-16/supported.versions=11-14/' AnyKernel3/anykernel.sh
+              ;;
+            lineage-22.2)
+              sed -i 's/supported.versions=11-16/supported.versions=11-15/' AnyKernel3/anykernel.sh
+              ;;
+            lineage-23.0)
+              sed -i 's/supported.versions=11-16/supported.versions=16/' AnyKernel3/anykernel.sh
+              ;;
+          esac
+          
+          cd android_kernel_xiaomi_sm6150/
+          
           # Check which features were built
-          echo ""
           echo "=========================================="
           echo "📦 Build Feature Summary"
           echo "=========================================="

@@ -1,0 +1,79 @@
+﻿2026-01-12T11:34:39.8573124Z ##[group]Run actions/checkout@v6.0.1
+2026-01-12T11:34:39.8574438Z with:
+2026-01-12T11:34:39.8575369Z   repository: RaidenExn/android_kernel_xiaomi_sm6150-builder
+2026-01-12T11:34:39.8576812Z   token: ***
+2026-01-12T11:34:39.8577505Z   ssh-strict: true
+2026-01-12T11:34:39.8578232Z   ssh-user: git
+2026-01-12T11:34:39.8578971Z   persist-credentials: true
+2026-01-12T11:34:39.8579802Z   clean: true
+2026-01-12T11:34:39.8580545Z   sparse-checkout-cone-mode: true
+2026-01-12T11:34:39.8581497Z   fetch-depth: 1
+2026-01-12T11:34:39.8582211Z   fetch-tags: false
+2026-01-12T11:34:39.8583079Z   show-progress: true
+2026-01-12T11:34:39.8583818Z   lfs: false
+2026-01-12T11:34:39.8584490Z   submodules: false
+2026-01-12T11:34:39.8585228Z   set-safe-directory: true
+2026-01-12T11:34:39.8586271Z ##[endgroup]
+2026-01-12T11:34:39.9523765Z Syncing repository: RaidenExn/android_kernel_xiaomi_sm6150-builder
+2026-01-12T11:34:39.9526660Z ##[group]Getting Git version info
+2026-01-12T11:34:39.9528525Z Working directory is '/home/runner/work/android_kernel_xiaomi_sm6150-builder/android_kernel_xiaomi_sm6150-builder'
+2026-01-12T11:34:39.9530934Z [command]/usr/bin/git version
+2026-01-12T11:34:39.9589702Z git version 2.52.0
+2026-01-12T11:34:39.9644403Z ##[endgroup]
+2026-01-12T11:34:39.9658955Z Temporarily overriding HOME='/home/runner/work/_temp/bf82c050-13a6-4d10-8225-9c88bcafc852' before making global git config changes
+2026-01-12T11:34:39.9662117Z Adding repository directory to the temporary git global config as a safe directory
+2026-01-12T11:34:39.9666382Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/android_kernel_xiaomi_sm6150-builder/android_kernel_xiaomi_sm6150-builder
+2026-01-12T11:34:39.9706142Z Deleting the contents of '/home/runner/work/android_kernel_xiaomi_sm6150-builder/android_kernel_xiaomi_sm6150-builder'
+2026-01-12T11:34:39.9710462Z ##[group]Initializing the repository
+2026-01-12T11:34:39.9714764Z [command]/usr/bin/git init /home/runner/work/android_kernel_xiaomi_sm6150-builder/android_kernel_xiaomi_sm6150-builder
+2026-01-12T11:34:39.9824862Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-01-12T11:34:39.9827886Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-01-12T11:34:39.9829917Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-01-12T11:34:39.9831274Z hint: call:
+2026-01-12T11:34:39.9832461Z hint:
+2026-01-12T11:34:39.9833978Z hint: 	git config --global init.defaultBranch <name>
+2026-01-12T11:34:39.9835169Z hint:
+2026-01-12T11:34:39.9836182Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-01-12T11:34:39.9838391Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-01-12T11:34:39.9840688Z hint:
+2026-01-12T11:34:39.9841753Z hint: 	git branch -m <name>
+2026-01-12T11:34:39.9842908Z hint:
+2026-01-12T11:34:39.9844018Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-01-12T11:34:39.9846569Z Initialized empty Git repository in /home/runner/work/android_kernel_xiaomi_sm6150-builder/android_kernel_xiaomi_sm6150-builder/.git/
+2026-01-12T11:34:39.9850415Z [command]/usr/bin/git remote add origin https://github.com/RaidenExn/android_kernel_xiaomi_sm6150-builder
+2026-01-12T11:34:39.9876475Z ##[endgroup]
+2026-01-12T11:34:39.9878329Z ##[group]Disabling automatic garbage collection
+2026-01-12T11:34:39.9880269Z [command]/usr/bin/git config --local gc.auto 0
+2026-01-12T11:34:39.9908064Z ##[endgroup]
+2026-01-12T11:34:39.9909959Z ##[group]Setting up auth
+2026-01-12T11:34:39.9911164Z Removing SSH command configuration
+2026-01-12T11:34:39.9914824Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-01-12T11:34:39.9948077Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-01-12T11:34:40.0295889Z Removing HTTP extra header
+2026-01-12T11:34:40.0303912Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-01-12T11:34:40.0341325Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-01-12T11:34:40.0558177Z Removing includeIf entries pointing to credentials config files
+2026-01-12T11:34:40.0563324Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-01-12T11:34:40.0595506Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-01-12T11:34:40.0819521Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-433b2724-7c5d-42fa-847b-7291125f6f7f.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-01-12T11:34:40.0859180Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/android_kernel_xiaomi_sm6150-builder/android_kernel_xiaomi_sm6150-builder/.git.path /home/runner/work/_temp/git-credentials-433b2724-7c5d-42fa-847b-7291125f6f7f.config
+2026-01-12T11:34:40.0890555Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/android_kernel_xiaomi_sm6150-builder/android_kernel_xiaomi_sm6150-builder/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-433b2724-7c5d-42fa-847b-7291125f6f7f.config
+2026-01-12T11:34:40.0920785Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-433b2724-7c5d-42fa-847b-7291125f6f7f.config
+2026-01-12T11:34:40.0952606Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-433b2724-7c5d-42fa-847b-7291125f6f7f.config
+2026-01-12T11:34:40.0979707Z ##[endgroup]
+2026-01-12T11:34:40.0982528Z ##[group]Fetching the repository
+2026-01-12T11:34:40.0990657Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +790912204ab09de0e1e989d45c75ea58deaa1361:refs/remotes/origin/dev
+2026-01-12T11:34:40.3233079Z From https://github.com/RaidenExn/android_kernel_xiaomi_sm6150-builder
+2026-01-12T11:34:40.3263720Z  * [new ref]         790912204ab09de0e1e989d45c75ea58deaa1361 -> origin/dev
+2026-01-12T11:34:40.3267956Z ##[endgroup]
+2026-01-12T11:34:40.3269194Z ##[group]Determining the checkout info
+2026-01-12T11:34:40.3270615Z ##[endgroup]
+2026-01-12T11:34:40.3272934Z [command]/usr/bin/git sparse-checkout disable
+2026-01-12T11:34:40.3322477Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-01-12T11:34:40.3351140Z ##[group]Checking out the ref
+2026-01-12T11:34:40.3354677Z [command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
+2026-01-12T11:34:40.3409480Z Switched to a new branch 'dev'
+2026-01-12T11:34:40.3411724Z branch 'dev' set up to track 'origin/dev'.
+2026-01-12T11:34:40.3418981Z ##[endgroup]
+2026-01-12T11:34:40.3455651Z [command]/usr/bin/git log -1 --format=%H
+2026-01-12T11:34:40.3480741Z 790912204ab09de0e1e989d45c75ea58deaa1361

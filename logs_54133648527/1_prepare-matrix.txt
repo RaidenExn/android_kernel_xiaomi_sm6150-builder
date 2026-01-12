@@ -1,0 +1,76 @@
+﻿2026-01-12T11:34:31.9248558Z Current runner version: '2.330.0'
+2026-01-12T11:34:31.9273002Z ##[group]Runner Image Provisioner
+2026-01-12T11:34:31.9273829Z Hosted Compute Agent
+2026-01-12T11:34:31.9274469Z Version: 20251211.462
+2026-01-12T11:34:31.9275089Z Commit: 6cbad8c2bb55d58165063d031ccabf57e2d2db61
+2026-01-12T11:34:31.9275741Z Build Date: 2025-12-11T16:28:49Z
+2026-01-12T11:34:31.9276490Z Worker ID: {9bc638e9-0cdd-496b-8985-241715b252fa}
+2026-01-12T11:34:31.9277171Z ##[endgroup]
+2026-01-12T11:34:31.9277690Z ##[group]Operating System
+2026-01-12T11:34:31.9278207Z Ubuntu
+2026-01-12T11:34:31.9279200Z 24.04.3
+2026-01-12T11:34:31.9279633Z LTS
+2026-01-12T11:34:31.9280068Z ##[endgroup]
+2026-01-12T11:34:31.9280613Z ##[group]Runner Image
+2026-01-12T11:34:31.9281181Z Image: ubuntu-24.04
+2026-01-12T11:34:31.9281699Z Version: 20260105.202.1
+2026-01-12T11:34:31.9282737Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260105.202/images/ubuntu/Ubuntu2404-Readme.md
+2026-01-12T11:34:31.9284347Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260105.202
+2026-01-12T11:34:31.9285388Z ##[endgroup]
+2026-01-12T11:34:31.9286341Z ##[group]GITHUB_TOKEN Permissions
+2026-01-12T11:34:31.9288590Z Contents: write
+2026-01-12T11:34:31.9289121Z Metadata: read
+2026-01-12T11:34:31.9289634Z ##[endgroup]
+2026-01-12T11:34:31.9291760Z Secret source: Actions
+2026-01-12T11:34:31.9292482Z Prepare workflow directory
+2026-01-12T11:34:31.9613239Z Prepare all required actions
+2026-01-12T11:34:31.9755140Z Complete job name: prepare-matrix
+2026-01-12T11:34:32.0481915Z ##[group]Run DATE=$(date +'%Y%m%d')
+2026-01-12T11:34:32.0482959Z [36;1mDATE=$(date +'%Y%m%d')[0m
+2026-01-12T11:34:32.0483879Z [36;1mTIME=$(date +'%s')[0m
+2026-01-12T11:34:32.0484919Z [36;1mecho "DATE=$DATE" >> $GITHUB_OUTPUT[0m
+2026-01-12T11:34:32.0486236Z [36;1mecho "TIME=$TIME" >> $GITHUB_OUTPUT[0m
+2026-01-12T11:34:32.0975312Z shell: /usr/bin/bash -e {0}
+2026-01-12T11:34:32.0976748Z ##[endgroup]
+2026-01-12T11:34:32.1358227Z ##[group]Run BUILDS=()
+2026-01-12T11:34:32.1359172Z [36;1mBUILDS=()[0m
+2026-01-12T11:34:32.1359768Z [36;1mif [[ "false" == "true" ]]; then[0m
+2026-01-12T11:34:32.1360391Z [36;1m  BUILDS+=("lineage-20")[0m
+2026-01-12T11:34:32.1360984Z [36;1mfi[0m
+2026-01-12T11:34:32.1361469Z [36;1mif [[ "false" == "true" ]]; then[0m
+2026-01-12T11:34:32.1362094Z [36;1m  BUILDS+=("lineage-21")[0m
+2026-01-12T11:34:32.1362681Z [36;1mfi[0m
+2026-01-12T11:34:32.1363151Z [36;1mif [[ "true" == "true" ]]; then[0m
+2026-01-12T11:34:32.1363775Z [36;1m  BUILDS+=("lineage-22.2")[0m
+2026-01-12T11:34:32.1364297Z [36;1mfi[0m
+2026-01-12T11:34:32.1364802Z [36;1mif [[ "false" == "true" ]]; then[0m
+2026-01-12T11:34:32.1365397Z [36;1m  BUILDS+=("lineage-23.0")[0m
+2026-01-12T11:34:32.1365993Z [36;1mfi[0m
+2026-01-12T11:34:32.1366384Z [36;1m[0m
+2026-01-12T11:34:32.1367009Z [36;1m# If no builds selected, default to lineage-23.0[0m
+2026-01-12T11:34:32.1367742Z [36;1mif [ ${#BUILDS[@]} -eq 0 ]; then[0m
+2026-01-12T11:34:32.1368569Z [36;1m  BUILDS=("lineage-23.0")[0m
+2026-01-12T11:34:32.1369338Z [36;1m  echo "⚠️ No versions selected, defaulting to lineage-23.0"[0m
+2026-01-12T11:34:32.1370016Z [36;1mfi[0m
+2026-01-12T11:34:32.1370549Z [36;1m[0m
+2026-01-12T11:34:32.1371018Z [36;1mecho "Selected builds: ${BUILDS[@]}"[0m
+2026-01-12T11:34:32.1371620Z [36;1m[0m
+2026-01-12T11:34:32.1372139Z [36;1m# Convert to JSON array properly[0m
+2026-01-12T11:34:32.1372824Z [36;1mJSON_ARRAY="["[0m
+2026-01-12T11:34:32.1373366Z [36;1mfor i in "${!BUILDS[@]}"; do[0m
+2026-01-12T11:34:32.1373975Z [36;1m  if [ $i -gt 0 ]; then[0m
+2026-01-12T11:34:32.1374547Z [36;1m    JSON_ARRAY+=","[0m
+2026-01-12T11:34:32.1375105Z [36;1m  fi[0m
+2026-01-12T11:34:32.1375667Z [36;1m  JSON_ARRAY+="\"${BUILDS[$i]}\""[0m
+2026-01-12T11:34:32.1376220Z [36;1mdone[0m
+2026-01-12T11:34:32.1376704Z [36;1mJSON_ARRAY+="]"[0m
+2026-01-12T11:34:32.1377239Z [36;1m[0m
+2026-01-12T11:34:32.1377860Z [36;1mecho "matrix={\"build-type\":$JSON_ARRAY}" >> $GITHUB_OUTPUT[0m
+2026-01-12T11:34:32.1416368Z shell: /usr/bin/bash -e {0}
+2026-01-12T11:34:32.1417326Z ##[endgroup]
+2026-01-12T11:34:32.1500904Z Selected builds: lineage-22.2
+2026-01-12T11:34:32.1551730Z Evaluate and set job outputs
+2026-01-12T11:34:32.1562871Z Set output 'matrix'
+2026-01-12T11:34:32.1565380Z Set output 'timestamp'
+2026-01-12T11:34:32.1566192Z Set output 'date'
+2026-01-12T11:34:32.1567303Z Cleaning up orphan processes
