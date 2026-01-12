@@ -5,22 +5,6 @@
 # Forked by Riaru Moda
 ##################################################
 
-# Strict error handling
-set -e          # Exit on error
-set -u          # Exit on undefined variable
-set -o pipefail # Exit on pipe failure
-
-# Error handler
-error_exit() {
-  echo "" >&2
-  echo "❌ ERROR: $1" >&2
-  echo "Build failed at line $2" >&2
-  exit 1
-}
-
-# Trap errors
-trap 'error_exit "Unexpected error" $LINENO' ERR
-
 # Help message
 help_message() {
   echo "Usage: $0 [OPTIONS]"
@@ -55,58 +39,8 @@ setup_toolchain() {
   echo "Setting up toolchains..."
 
   if [ ! -d "$PWD/clang" ]; then
-    echo "Cloning Clang r584948 (latest)..."
-    
-    # Try multiple sources in order
-    CLANG_DOWNLOADED=false
-    
-    # Method 1: Try crdroid GitLab (fastest if works)
-    if ! $CLANG_DOWNLOADED; then
-      echo "Trying source 1: crdroid GitLab..."
-      if git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r584948.git \
-        --depth=1 -b 18.0 clang 2>/dev/null; then
-        CLANG_DOWNLOADED=true
-        echo "✅ Downloaded from crdroid GitLab"
-      else
-        echo "⚠️ crdroid GitLab failed, trying next source..."
-        rm -rf clang
-      fi
-    fi
-    
-    # Method 2: Try GitHub mirror (reliable)
-    if ! $CLANG_DOWNLOADED; then
-      echo "Trying source 2: GitHub mirror..."
-      if git clone https://github.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r584948.git \
-        --depth=1 clang 2>/dev/null; then
-        CLANG_DOWNLOADED=true
-        echo "✅ Downloaded from GitHub mirror"  
-      else
-        echo "⚠️ GitHub mirror failed, trying next source..."
-        rm -rf clang
-      fi
-    fi
-    
-    # Method 3: Fallback to older but stable r547379
-    if ! $CLANG_DOWNLOADED; then
-      echo "Trying source 3: Stable r547379 (fallback)..."
-      if git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git \
-        --depth=1 -b 15.0 clang 2>/dev/null; then
-        CLANG_DOWNLOADED=true
-        echo "✅ Downloaded Clang r547379 (fallback version)"
-      else
-        echo "❌ All Clang sources failed!"
-        exit 1
-      fi
-    fi
-    
-    # Verify Clang was downloaded correctly
-    if [ ! -f "clang/bin/clang" ]; then
-      echo "❌ Error: Clang binary not found after download!"
-      ls -la clang/
-      exit 1
-    fi
-    
-    echo "✅ Clang toolchain ready"
+    echo "Cloning Clang..."
+    git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git --depth=1 -b 15.0 clang
   else
     echo "Local clang dir found, using it."
   fi
@@ -225,164 +159,37 @@ add_dtbo() {
   patch -p1 < dtbo6.patch
 }
 
-# KSU Setup
+# KSU Setup (Simple - No susfs)
 setup_ksu() {
   local arg="$1"
   if [[ "$arg" == "--ksu" ]]; then
-    echo "Setting up KernelSU..."
+    echo "Setting up KernelSU (basic version)..."
+    
+    # Enable basic KernelSU configs (NO susfs)
     echo "CONFIG_KSU=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_KSU_LSM_SECURITY_HOOKS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_KSU_MANUAL_HOOKS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_KSU_SUSFS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_KSU_SUSFS_SUS_PATH=n" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=n" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     
-    # Download and apply KSU patch
+    # Apply KSU patch
     wget -L "https://github.com/ximi-mojito-test/mojito_krenol/commit/8e25004fdc74d9bf6d902d02e402620c17c692df.patch" -O ksu.patch
-    patch -p1 < ksu.patch || echo "⚠️ KSU patch partially applied, continuing..."
+    patch -p1 < ksu.patch
     
-    patch -p1 < ksumakefile.patch || echo "⚠️ KSU Makefile patch partially applied, continuing..."
+    # Apply Makefile patch
+    patch -p1 < ksumakefile.patch
     
-    # Download and apply kernel patches (may fail on some kernel versions)
-    wget -L "https://github.com/TheSillyOk/kernel_ls_patches/raw/refs/heads/master/kpatch_fix.patch" -O kpatch_fix.patch
-    if patch -p1 --dry-run < kpatch_fix.patch > /dev/null 2>&1; then
-      patch -p1 < kpatch_fix.patch
-      echo "✅ kpatch_fix applied successfully"
-    else
-      echo "⚠️ kpatch_fix.patch not compatible with this kernel version, skipping..."
-    fi
-    
-    # Download and apply susfs patch (may fail on some kernel versions)
-    wget -L "https://github.com/TheSillyOk/kernel_ls_patches/raw/refs/heads/master/susfs-2.0.0.patch" -O susfs.patch
-    if patch -p1 --dry-run < susfs.patch > /dev/null 2>&1; then
-      patch -p1 < susfs.patch
-      echo "✅ susfs-2.0.0 patch applied successfully"
-    else
-      echo "⚠️ susfs-2.0.0.patch not compatible with this kernel version, skipping..."
-      echo "   KernelSU will work but susfs features may be limited"
-    fi
-    
-    # Clone KernelSU
+    # Clone KernelSU (basic branch)
     git clone "$KSU_SETUP_URI" -b "$KSU_BRANCH" KernelSU
     cd drivers
     ln -sfv ../KernelSU/kernel kernelsu
     cd ..
     
-    # Apply KernelSU susfs integration patch
-    cd KernelSU
-    wget -L "https://raw.githubusercontent.com/TheSillyOk/kernel_ls_patches/refs/heads/master/KSUN/KSUN-SUSFS-2.0.0.patch" -O ksun_susfs.patch
-    if patch -p1 --dry-run < ksun_susfs.patch > /dev/null 2>&1; then
-      patch -p1 < ksun_susfs.patch
-      echo "✅ KSUN-SUSFS patch applied successfully"
-    else
-      echo "⚠️ KSUN-SUSFS patch not compatible, skipping..."
-      echo "   Basic KernelSU will still work"
-    fi
-    cd ..
+    echo "✅ KernelSU (basic) setup complete - safe root without susfs"
   elif [[ "$arg" == "--no-ksu" ]]; then
     echo "KernelSU setup skipped."
   fi
 }
 
-# KProfiles Support
-add_kprofiles() {
-  local arg="$1"
-  if [[ "$arg" == "--kprofiles" ]]; then
-    echo "Adding KProfiles support..."
-    
-    # Clone KProfiles kernel module
-    if [ ! -d "drivers/misc/kprofiles" ]; then
-      echo "Cloning KProfiles kernel module..."
-      git clone https://github.com/beakthoven/Kprofiles.git drivers/misc/kprofiles --depth=1
-    else
-      echo "KProfiles directory already exists, skipping clone"
-    fi
-    
-    # Modify drivers/misc/Kconfig
-    echo "Modifying drivers/misc/Kconfig..."
-    if ! grep -q "source \"drivers/misc/kprofiles/Kconfig\"" drivers/misc/Kconfig; then
-      sed -i '/^endmenu/i source "drivers/misc/kprofiles/Kconfig"' drivers/misc/Kconfig
-    fi
-    
-    # Modify drivers/misc/Makefile
-    echo "Modifying drivers/misc/Makefile..."
-    if ! grep -q "obj-.CONFIG_KPROFILES" drivers/misc/Makefile; then
-      echo "obj-\$(CONFIG_KPROFILES) += kprofiles/"  >> drivers/misc/Makefile
-    fi
-    
-    # Enable KProfiles in kernel config
-    echo "CONFIG_KPROFILES=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    
-    echo "✅ KProfiles support added successfully"
-  elif [[ "$arg" == "--no-kprofiles" ]]; then
-    echo "KProfiles support skipped."
-  fi
-}
-
-# NetHunter Full Support
-add_nethunter_full() {
-  local arg="$1"
-  if [[ "$arg" == "--nethunter-full" ]]; then
-    echo "Adding full Kali NetHunter compatibility patches..."
-    
-    # HID Keyboard/Mouse gadget support
-    echo "CONFIG_USB_CONFIGFS_F_HID=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_USB_GADGET=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_USB_CONFIGFS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_USB_LIBCOMPOSITE=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    
-    # USB Serial/RNDIS support
-    echo "CONFIG_USB_CONFIGFS_SERIAL=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_USB_CONFIGFS_RNDIS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_USB_CONFIGFS_ECM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_USB_CONFIGFS_NCM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_USB_CONFIGFS_EEM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    
-    # USB ACM and Serial support
-    echo "CONFIG_USB_ACM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_USB_SERIAL=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_USB_SERIAL_GENERIC=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_USB_SERIAL_OPTION=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_USB_WDM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    
-    # Filesystem support
-    echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_SQUASHFS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_SQUASHFS_XZ=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    
-    # Bluetooth support
-    echo "CONFIG_BT_HCIBTUSB=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_BT_RFCOMM=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    
-    # Network filtering
-    echo "CONFIG_NETFILTER_XT_TARGET_TCPMSS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_IP_NF_TARGET_MASQUERADE=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    echo "CONFIG_IP6_NF_TARGET_MASQUERADE=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
-    
-    echo "✅ NetHunter full patches applied successfully"
-  elif [[ "$arg" == "--no-nethunter-full" ]]; then
-    echo "NetHunter full patches skipped."
-  fi
-}
-
 # Compile kernel
 compile_kernel() {
-  echo -e "
-===========================================" 
-  echo "Starting kernel compilation..."
-  echo "===========================================
-"
-  
-  # Enable ccache if available
-  if command -v ccache &> /dev/null; then
-    export USE_CCACHE=1
-    export CCACHE_DIR=$PWD/../.ccache
-    echo "✅ ccache enabled (cache dir: $CCACHE_DIR)"
-    ccache --zero-stats
-  else
-    echo "ℹ️ ccache not available, proceeding without cache"
-  fi
-  
+  echo -e "\nStarting compilation..."
   sed -i 's/CONFIG_LOCALVERSION="-perf"/CONFIG_LOCALVERSION="-perf-neon"/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
   git config user.email "riarucompile@riaru.com"
   git config user.name "riaru-compile"
@@ -391,19 +198,7 @@ compile_kernel() {
   git commit -m "cleanup: applied patches before build"
   make O=out ARCH=arm64 vendor/sdmsteppe-perf_defconfig
   make O=out ARCH=arm64 vendor/sweet.config
-  
-  # Calculate optimal job count (cores * 1.5 for I/O overlap)
-  JOBS=$(($(nproc --all) * 3 / 2))
-  echo "Building with $JOBS parallel jobs..."
-  
-  # Use ccache with clang if available
-  if command -v ccache &> /dev/null; then
-    CCACHE_CLANG="ccache clang"
-  else
-    CCACHE_CLANG="clang"
-  fi
-  
-  make -j$JOBS \
+  make -j$(nproc --all) \
     O=out \
     ARCH=arm64 \
     LLVM=1 \
@@ -414,24 +209,9 @@ compile_kernel() {
     OBJCOPY=llvm-objcopy \
     OBJDUMP=llvm-objdump \
     STRIP=llvm-strip \
-    CC="$CCACHE_CLANG" \
+    CC=clang \
     CROSS_COMPILE=$GCC64_DIR/bin/aarch64-elf- \
-    CROSS_COMPILE_COMPAT=$GCC32_DIR/bin/arm-eabi-
-  
-  # Show ccache statistics
-  if command -v ccache &> /dev/null; then
-    echo "
-===========================================" 
-    echo "📊 ccache Statistics:"
-    echo "===========================================" 
-    ccache --show-stats
-  fi
-  
-  echo "
-===========================================" 
-  echo "✅ Kernel compilation completed!"
-  echo "===========================================
-"
+    CROSS_COMPILE_COMPAT=$GCC32_DIR/bin/arm-eabi- 
 }
 
 # Main function
@@ -450,8 +230,8 @@ main() {
   add_f2fs "$3"
   add_ln8k "$2"
   setup_ksu "$1"
-  add_kprofiles "$5"        # Add KProfiles as 5th argument
-  add_nethunter_full "$4"  # Add NetHunter as 4th argument
+  add_nethunter_full "$4"  # NetHunter as 4th argument
+  add_kprofiles "$5"        # KProfiles as 5th argument
   compile_kernel
 }
 
