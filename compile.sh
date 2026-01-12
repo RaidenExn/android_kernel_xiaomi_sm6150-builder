@@ -208,8 +208,7 @@ add_kprofiles() {
       echo "obj-\$(CONFIG_KPROFILES) += kprofiles/" >> drivers/misc/Makefile
     fi
     
-    # Enable KProfiles in kernel config
-    echo "CONFIG_KPROFILES=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    # Don't add to defconfig yet - will enable in out/.config after make defconfig
     
     echo "✅ KProfiles support added successfully"
   elif [[ "$arg" == "--no-kprofiles" ]]; then
@@ -220,14 +219,31 @@ add_kprofiles() {
 # Compile kernel
 compile_kernel() {
   echo -e "\nStarting compilation..."
+  
+  # Set kernel version string
   sed -i 's/CONFIG_LOCALVERSION="-perf"/CONFIG_LOCALVERSION="-perf-neon"/' arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+  
+  # Git config for embedded repos
   git config user.email "riarucompile@riaru.com"
   git config user.name "riaru-compile"
   git config set advice.addEmbeddedRepo true
   git add .
   git commit -m "cleanup: applied patches before build"
+  
+  # Generate .config from defconfig
   make O=out ARCH=arm64 vendor/sdmsteppe-perf_defconfig
   make O=out ARCH=arm64 vendor/sweet.config
+  
+  # Enable KProfiles in the generated .config if it was requested
+  # (Must happen AFTER make defconfig, not before!)
+  if [ -f "drivers/misc/kprofiles/Kconfig" ]; then
+    echo "Enabling KProfiles in kernel config..."
+    echo "CONFIG_KPROFILES=y" >> out/.config
+    # Regenerate config to resolve dependencies
+    make O=out ARCH=arm64 olddefconfig
+  fi
+  
+  # Start compilation
   make -j$(nproc --all) \
     O=out \
     ARCH=arm64 \
