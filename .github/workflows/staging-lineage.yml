@@ -191,6 +191,20 @@ jobs:
           cp ksumakefile.patch android_kernel_xiaomi_sm6150/
           cp compile.sh android_kernel_xiaomi_sm6150/
           chmod +x ./android_kernel_xiaomi_sm6150/compile.sh
+          
+          # Move cached toolchains into kernel directory (if they exist)
+          if [ -d "clang" ]; then
+            echo "✅ Using cached Clang toolchain"
+            mv clang android_kernel_xiaomi_sm6150/
+          fi
+          if [ -d "gcc64" ]; then
+            echo "✅ Using cached GCC64 toolchain"
+            mv gcc64 android_kernel_xiaomi_sm6150/
+          fi
+          if [ -d "gcc32" ]; then
+            echo "✅ Using cached GCC32 toolchain"
+            mv gcc32 android_kernel_xiaomi_sm6150/
+          fi
 
       - name: Compile the kernel
         run: |

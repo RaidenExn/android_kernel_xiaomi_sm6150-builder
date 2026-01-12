@@ -1,7 +1,0 @@
-﻿2026-01-12T11:51:57.6144437Z Post job cleanup.
-2026-01-12T11:51:57.7510009Z ##[group]ccache stats
-2026-01-12T11:51:57.7524050Z [command]/usr/bin/ccache -s
-2026-01-12T11:51:57.8016172Z Local storage:
-2026-01-12T11:51:57.8017646Z   Cache size (GB): 0.0 / 2.0 ( 0.00%)
-2026-01-12T11:51:57.8025372Z ##[endgroup]
-2026-01-12T11:51:57.8133497Z Not saving cache because no objects are cached.
