@@ -190,20 +190,48 @@ setup_ksu() {
     echo "CONFIG_KSU_SUSFS=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     echo "CONFIG_KSU_SUSFS_SUS_PATH=n" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=n" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
+    
+    # Download and apply KSU patch
     wget -L "https://github.com/ximi-mojito-test/mojito_krenol/commit/8e25004fdc74d9bf6d902d02e402620c17c692df.patch" -O ksu.patch
-    patch -p1 < ksu.patch
-    patch -p1 < ksumakefile.patch
+    patch -p1 < ksu.patch || echo "⚠️ KSU patch partially applied, continuing..."
+    
+    patch -p1 < ksumakefile.patch || echo "⚠️ KSU Makefile patch partially applied, continuing..."
+    
+    # Download and apply kernel patches (may fail on some kernel versions)
     wget -L "https://github.com/TheSillyOk/kernel_ls_patches/raw/refs/heads/master/kpatch_fix.patch" -O kpatch_fix.patch
-    patch -p1 < kpatch_fix.patch
+    if patch -p1 --dry-run < kpatch_fix.patch > /dev/null 2>&1; then
+      patch -p1 < kpatch_fix.patch
+      echo "✅ kpatch_fix applied successfully"
+    else
+      echo "⚠️ kpatch_fix.patch not compatible with this kernel version, skipping..."
+    fi
+    
+    # Download and apply susfs patch (may fail on some kernel versions)
     wget -L "https://github.com/TheSillyOk/kernel_ls_patches/raw/refs/heads/master/susfs-2.0.0.patch" -O susfs.patch
-    patch -p1 < susfs.patch
+    if patch -p1 --dry-run < susfs.patch > /dev/null 2>&1; then
+      patch -p1 < susfs.patch
+      echo "✅ susfs-2.0.0 patch applied successfully"
+    else
+      echo "⚠️ susfs-2.0.0.patch not compatible with this kernel version, skipping..."
+      echo "   KernelSU will work but susfs features may be limited"
+    fi
+    
+    # Clone KernelSU
     git clone "$KSU_SETUP_URI" -b "$KSU_BRANCH" KernelSU
     cd drivers
     ln -sfv ../KernelSU/kernel kernelsu
     cd ..
+    
+    # Apply KernelSU susfs integration patch
     cd KernelSU
     wget -L "https://raw.githubusercontent.com/TheSillyOk/kernel_ls_patches/refs/heads/master/KSUN/KSUN-SUSFS-2.0.0.patch" -O ksun_susfs.patch
-    patch -p1 < ksun_susfs.patch
+    if patch -p1 --dry-run < ksun_susfs.patch > /dev/null 2>&1; then
+      patch -p1 < ksun_susfs.patch
+      echo "✅ KSUN-SUSFS patch applied successfully"
+    else
+      echo "⚠️ KSUN-SUSFS patch not compatible, skipping..."
+      echo "   Basic KernelSU will still work"
+    fi
     cd ..
   elif [[ "$arg" == "--no-ksu" ]]; then
     echo "KernelSU setup skipped."
