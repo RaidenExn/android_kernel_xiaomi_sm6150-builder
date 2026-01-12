@@ -56,11 +56,57 @@ setup_toolchain() {
 
   if [ ! -d "$PWD/clang" ]; then
     echo "Cloning Clang r584948 (latest)..."
-    # Try official AOSP first, fallback to mirror
-    git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r584948.git \
-      --depth=1 -b 18.0 clang || \
-    git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
-      --depth=1 --single-branch --branch=main clang
+    
+    # Try multiple sources in order
+    CLANG_DOWNLOADED=false
+    
+    # Method 1: Try crdroid GitLab (fastest if works)
+    if ! $CLANG_DOWNLOADED; then
+      echo "Trying source 1: crdroid GitLab..."
+      if git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r584948.git \
+        --depth=1 -b 18.0 clang 2>/dev/null; then
+        CLANG_DOWNLOADED=true
+        echo "✅ Downloaded from crdroid GitLab"
+      else
+        echo "⚠️ crdroid GitLab failed, trying next source..."
+        rm -rf clang
+      fi
+    fi
+    
+    # Method 2: Try GitHub mirror (reliable)
+    if ! $CLANG_DOWNLOADED; then
+      echo "Trying source 2: GitHub mirror..."
+      if git clone https://github.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r584948.git \
+        --depth=1 clang 2>/dev/null; then
+        CLANG_DOWNLOADED=true
+        echo "✅ Downloaded from GitHub mirror"  
+      else
+        echo "⚠️ GitHub mirror failed, trying next source..."
+        rm -rf clang
+      fi
+    fi
+    
+    # Method 3: Fallback to older but stable r547379
+    if ! $CLANG_DOWNLOADED; then
+      echo "Trying source 3: Stable r547379 (fallback)..."
+      if git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git \
+        --depth=1 -b 15.0 clang 2>/dev/null; then
+        CLANG_DOWNLOADED=true
+        echo "✅ Downloaded Clang r547379 (fallback version)"
+      else
+        echo "❌ All Clang sources failed!"
+        exit 1
+      fi
+    fi
+    
+    # Verify Clang was downloaded correctly
+    if [ ! -f "clang/bin/clang" ]; then
+      echo "❌ Error: Clang binary not found after download!"
+      ls -la clang/
+      exit 1
+    fi
+    
+    echo "✅ Clang toolchain ready"
   else
     echo "Local clang dir found, using it."
   fi
