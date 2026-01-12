@@ -5,6 +5,22 @@
 # Forked by Riaru Moda
 ##################################################
 
+# Strict error handling
+set -e          # Exit on error
+set -u          # Exit on undefined variable
+set -o pipefail # Exit on pipe failure
+
+# Error handler
+error_exit() {
+  echo "" >&2
+  echo "❌ ERROR: $1" >&2
+  echo "Build failed at line $2" >&2
+  exit 1
+}
+
+# Trap errors
+trap 'error_exit "Unexpected error" $LINENO' ERR
+
 # Help message
 help_message() {
   echo "Usage: $0 [OPTIONS]"
@@ -39,8 +55,12 @@ setup_toolchain() {
   echo "Setting up toolchains..."
 
   if [ ! -d "$PWD/clang" ]; then
-    echo "Cloning Clang..."
-    git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r547379.git --depth=1 -b 15.0 clang
+    echo "Cloning Clang r584948 (latest)..."
+    # Try official AOSP first, fallback to mirror
+    git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r584948.git \
+      --depth=1 -b 18.0 clang || \
+    git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
+      --depth=1 --single-branch --branch=main clang
   else
     echo "Local clang dir found, using it."
   fi

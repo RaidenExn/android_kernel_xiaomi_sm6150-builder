@@ -106,10 +106,10 @@ jobs:
       matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.1
 
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@v1.2.14
         with:
           key: ccache-kernel-${{ matrix.build-type }}-${{ github.sha }}
           restore-keys: |
@@ -118,16 +118,17 @@ jobs:
           max-size: 2G
 
       - name: Cache toolchains
-        uses: actions/cache@v4
+        uses: actions/cache@v5.0.1
         with:
           path: |
             clang
             gcc64
             gcc32
-          key: toolchains-${{ runner.os }}-clang-r547379-gcc-latest
+          key: toolchains-${{ runner.os }}-clang-r584948-gcc-latest
           restore-keys: |
+            toolchains-${{ runner.os }}-clang-r584948-
             toolchains-${{ runner.os }}-clang-r547379-
-            toolchains-${{ runner.os }}-
+            toolchains-${{ runner.os }}-dependencies
 
       - name: Install build dependencies
         run: |
@@ -197,7 +198,7 @@ jobs:
           echo "✅ All build artifacts verified"
 
       - name: Cache AnyKernel3
-        uses: actions/cache@v4
+        uses: actions/cache@v5.0.14
         with:
           path: AnyKernel3
           key: anykernel3-${{ hashFiles('**/anykernel.sh') }}
@@ -247,7 +248,7 @@ jobs:
           md5sum "$ZIPNAME" > "${ZIPNAME}.md5"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4.5.0
         with:
           name: ${{ matrix.build-type }}-zip
           path: |
@@ -263,7 +264,7 @@ jobs:
 
     steps:
       - name: Download all build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.5.0
         with:
           path: ./artifacts
 
@@ -271,7 +272,7 @@ jobs:
         run: ls -lah artifacts
 
       - name: Create Release and Upload builds
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
