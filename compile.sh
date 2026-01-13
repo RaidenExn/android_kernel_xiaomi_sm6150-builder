@@ -216,6 +216,74 @@ add_kprofiles() {
   fi
 }
 
+# NetHunter Support
+add_nethunter_full() {
+  local arg="$1"
+  if [[ "$arg" == "--nethunter-full" ]]; then
+    echo "Adding full NetHunter support (Drivers & Patches)..."
+    
+    # 1. Clone Drivers
+    # RTL8812AU
+    if [ ! -d "drivers/net/wireless/realtek/rtl8812au" ]; then
+      echo "Cloning rtl8812au driver..."
+      git clone https://github.com/aircrack-ng/rtl8812au.git drivers/net/wireless/realtek/rtl8812au -b v5.6.4.2 --depth=1
+    fi
+    # RTL8188EUS
+    if [ ! -d "drivers/net/wireless/realtek/rtl8188eus" ]; then
+      echo "Cloning rtl8188eus driver..."
+      git clone https://github.com/aircrack-ng/rtl8188eus.git drivers/net/wireless/realtek/rtl8188eus -b v5.3.9 --depth=1
+    fi
+
+    # 2. Patch Kconfig/Makefile (Idempotent)
+    # realtek/Kconfig
+    if ! grep -q "source \"drivers/net/wireless/realtek/rtl8812au/Kconfig\"" drivers/net/wireless/realtek/Kconfig; then
+      sed -i '/^endif/i source "drivers/net/wireless/realtek/rtl8812au/Kconfig"' drivers/net/wireless/realtek/Kconfig
+    fi
+     if ! grep -q "source \"drivers/net/wireless/realtek/rtl8188eus/Kconfig\"" drivers/net/wireless/realtek/Kconfig; then
+      sed -i '/^endif/i source "drivers/net/wireless/realtek/rtl8188eus/Kconfig"' drivers/net/wireless/realtek/Kconfig
+    fi
+
+    # realtek/Makefile
+    if ! grep -q "obj-\$(CONFIG_RTL8812AU) += rtl8812au/" drivers/net/wireless/realtek/Makefile; then
+      echo "obj-\$(CONFIG_RTL8812AU) += rtl8812au/" >> drivers/net/wireless/realtek/Makefile
+    fi
+    if ! grep -q "obj-\$(CONFIG_RTL8188EUS) += rtl8188eus/" drivers/net/wireless/realtek/Makefile; then
+      echo "obj-\$(CONFIG_RTL8188EUS) += rtl8188eus/" >> drivers/net/wireless/realtek/Makefile
+    fi
+
+    # 3. Enable Configs in defconfig
+    DEFCONFIG="arch/arm64/configs/vendor/sdmsteppe-perf_defconfig"
+    
+    # Bluebinder / Bluetooth
+    echo "CONFIG_BT_HCIVHCI=y" >> $DEFCONFIG
+    
+    # NetHunter HID
+    echo "CONFIG_USB_CONFIGFS_F_HID=y" >> $DEFCONFIG
+    echo "CONFIG_USB_F_HID=y" >> $DEFCONFIG
+    
+    # WiFi Drivers (internal + external)
+    echo "CONFIG_RTL88XXAU=y" >> $DEFCONFIG  # This might be for the patch version if used, but keeping for safety if kconfig assumes it
+    echo "CONFIG_RTL8812AU=y" >> $DEFCONFIG  # For the cloned repo (check kconfig var name usually CONFIG_88XXAU or CONFIG_RTL8812AU)
+    echo "CONFIG_RTL8188EUS=y" >> $DEFCONFIG
+
+    # General WiFi Injection Support
+    echo "CONFIG_MAC80211=y" >> $DEFCONFIG
+    echo "CONFIG_CFG80211=y" >> $DEFCONFIG
+    echo "CONFIG_RFKILL=y" >> $DEFCONFIG
+    
+    # SDR & USB Video
+    echo "CONFIG_MEDIA_SDR_SUPPORT=y" >> $DEFCONFIG
+    echo "CONFIG_MEDIA_USB_SUPPORT=y" >> $DEFCONFIG
+    echo "CONFIG_USB_GSPCA=y" >> $DEFCONFIG
+    echo "CONFIG_USB_VIDEO_CLASS=y" >> $DEFCONFIG
+    
+    echo "✅ NetHunter full support added"
+    
+  elif [[ "$arg" == "--no-nethunter-full" ]]; then
+    echo "NetHunter patches skipped."
+  fi
+}
+
 # Compile kernel
 compile_kernel() {
   echo -e "\nStarting compilation..."
