@@ -228,20 +228,34 @@ add_nethunter_full() {
     if [ ! -d "drivers/net/wireless/realtek/rtl8812au" ]; then
       echo "Cloning rtl8812au driver..."
       git clone https://github.com/aircrack-ng/rtl8812au.git drivers/net/wireless/realtek/rtl8812au -b v5.6.4.2 --depth=1
+      # Remove .git to avoid submodule issues
+      rm -rf drivers/net/wireless/realtek/rtl8812au/.git
     fi
     # RTL8188EUS
     if [ ! -d "drivers/net/wireless/realtek/rtl8188eus" ]; then
       echo "Cloning rtl8188eus driver..."
       git clone https://github.com/aircrack-ng/rtl8188eus.git drivers/net/wireless/realtek/rtl8188eus -b v5.3.9 --depth=1
+      # Remove .git to avoid submodule issues
+      rm -rf drivers/net/wireless/realtek/rtl8188eus/.git
     fi
 
     # 2. Patch Kconfig/Makefile (Idempotent)
     # realtek/Kconfig
     if ! grep -q "source \"drivers/net/wireless/realtek/rtl8812au/Kconfig\"" drivers/net/wireless/realtek/Kconfig; then
-      sed -i '/^endif/i source "drivers/net/wireless/realtek/rtl8812au/Kconfig"' drivers/net/wireless/realtek/Kconfig
+      # Try matching endif or endmenu with optional whitespace
+      sed -i '/^\s*endif/i source "drivers/net/wireless/realtek/rtl8812au/Kconfig"' drivers/net/wireless/realtek/Kconfig
+      # If previous sed didn't match endif, try endmenu (fallback)
+      if ! grep -q "source \"drivers/net/wireless/realtek/rtl8812au/Kconfig\"" drivers/net/wireless/realtek/Kconfig; then
+         sed -i '/^\s*endmenu/i source "drivers/net/wireless/realtek/rtl8812au/Kconfig"' drivers/net/wireless/realtek/Kconfig
+      fi
     fi
      if ! grep -q "source \"drivers/net/wireless/realtek/rtl8188eus/Kconfig\"" drivers/net/wireless/realtek/Kconfig; then
-      sed -i '/^endif/i source "drivers/net/wireless/realtek/rtl8188eus/Kconfig"' drivers/net/wireless/realtek/Kconfig
+       # Insert before the just-inserted 8812au line or endif/endmenu
+       # Simply appending before endif works fine as order doesn't strictly matter for these
+      sed -i '/^\s*endif/i source "drivers/net/wireless/realtek/rtl8188eus/Kconfig"' drivers/net/wireless/realtek/Kconfig
+      if ! grep -q "source \"drivers/net/wireless/realtek/rtl8188eus/Kconfig\"" drivers/net/wireless/realtek/Kconfig; then
+         sed -i '/^\s*endmenu/i source "drivers/net/wireless/realtek/rtl8188eus/Kconfig"' drivers/net/wireless/realtek/Kconfig
+      fi
     fi
 
     # realtek/Makefile
