@@ -241,21 +241,18 @@ add_nethunter_full() {
 
     # 2. Patch Kconfig/Makefile (Idempotent)
     # realtek/Kconfig
-    if ! grep -q "source \"drivers/net/wireless/realtek/rtl8812au/Kconfig\"" drivers/net/wireless/realtek/Kconfig; then
-      # Try matching endif or endmenu with optional whitespace
-      sed -i '/^\s*endif/i source "drivers/net/wireless/realtek/rtl8812au/Kconfig"' drivers/net/wireless/realtek/Kconfig
-      # If previous sed didn't match endif, try endmenu (fallback)
-      if ! grep -q "source \"drivers/net/wireless/realtek/rtl8812au/Kconfig\"" drivers/net/wireless/realtek/Kconfig; then
-         sed -i '/^\s*endmenu/i source "drivers/net/wireless/realtek/rtl8812au/Kconfig"' drivers/net/wireless/realtek/Kconfig
-      fi
-    fi
-     if ! grep -q "source \"drivers/net/wireless/realtek/rtl8188eus/Kconfig\"" drivers/net/wireless/realtek/Kconfig; then
-       # Insert before the just-inserted 8812au line or endif/endmenu
-       # Simply appending before endif works fine as order doesn't strictly matter for these
-      sed -i '/^\s*endif/i source "drivers/net/wireless/realtek/rtl8188eus/Kconfig"' drivers/net/wireless/realtek/Kconfig
-      if ! grep -q "source \"drivers/net/wireless/realtek/rtl8188eus/Kconfig\"" drivers/net/wireless/realtek/Kconfig; then
-         sed -i '/^\s*endmenu/i source "drivers/net/wireless/realtek/rtl8188eus/Kconfig"' drivers/net/wireless/realtek/Kconfig
-      fi
+    REALTEK_KCONFIG="drivers/net/wireless/realtek/Kconfig"
+    if [ -f "$REALTEK_KCONFIG" ]; then
+        if ! grep -q "source \"drivers/net/wireless/realtek/rtl8812au/Kconfig\"" "$REALTEK_KCONFIG"; then
+            echo >> "$REALTEK_KCONFIG"
+            echo "source \"drivers/net/wireless/realtek/rtl8812au/Kconfig\"" >> "$REALTEK_KCONFIG"
+        fi
+        if ! grep -q "source \"drivers/net/wireless/realtek/rtl8188eus/Kconfig\"" "$REALTEK_KCONFIG"; then
+            echo >> "$REALTEK_KCONFIG"
+            echo "source \"drivers/net/wireless/realtek/rtl8188eus/Kconfig\"" >> "$REALTEK_KCONFIG"
+        fi
+    else
+        echo "⚠️ Warning: $REALTEK_KCONFIG not found, new drivers might not be picked up."
     fi
 
     # realtek/Makefile
