@@ -208,7 +208,8 @@ add_kprofiles() {
       echo "obj-\$(CONFIG_KPROFILES) += kprofiles/" >> drivers/misc/Makefile
     fi
     
-    # Don't add to defconfig yet - will enable in out/.config after make defconfig
+    # Enable in DEFCONFIG directly
+    echo "CONFIG_KPROFILES=y" >> arch/arm64/configs/vendor/sdmsteppe-perf_defconfig
     
     echo "✅ KProfiles support added successfully"
   elif [[ "$arg" == "--no-kprofiles" ]]; then
@@ -302,13 +303,13 @@ compile_kernel() {
   make O=out ARCH=arm64 vendor/sdmsteppe-perf_defconfig
   make O=out ARCH=arm64 vendor/sweet.config
   
-  # Enable KProfiles in the generated .config if it was requested
-  # (Must happen AFTER make defconfig, not before!)
-  if [ -f "drivers/misc/kprofiles/Kconfig" ]; then
-    echo "Enabling KProfiles in kernel config..."
-    echo "CONFIG_KPROFILES=y" >> out/.config
-    # Regenerate config to resolve dependencies
-    make O=out ARCH=arm64 olddefconfig
+  # Verify KProfiles is present if enabled
+  if grep -q "CONFIG_KPROFILES=y" arch/arm64/configs/vendor/sdmsteppe-perf_defconfig; then
+     if ! grep -q "CONFIG_KPROFILES=y" out/.config; then
+        echo "❌ ERROR: CONFIG_KPROFILES was requested but not found in final .config!"
+        exit 1
+     fi
+     echo "✅ KProfiles verified in .config"
   fi
   
   # Start compilation

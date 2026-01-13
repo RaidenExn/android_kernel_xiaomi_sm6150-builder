@@ -308,6 +308,12 @@ jobs:
           ZIPNAME="aosp-perf-neon-${{ matrix.build-type }}${NH_SUFFIX}-${{ needs.prepare-matrix.outputs.date }}-${{ needs.prepare-matrix.outputs.timestamp }}-sweet.zip"
           echo "📦 Output: $ZIPNAME"
 
+      - name: Download KProfiles Manager
+        if: ${{ inputs.enable-kprofiles == true }}
+        run: |
+            echo "📥 Downloading KProfiles Manager app..."
+            wget -L "https://github.com/dakkshesh07/Kprofiles/releases/download/v2.0/KProfiles-v2.0.apk" -O AnyKernel3/KProfiles_Manager.apk
+
       - name: Zip kernel contents
         run: |
           cd AnyKernel3
